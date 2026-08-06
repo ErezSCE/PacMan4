@@ -59,8 +59,7 @@ describe('Ghost behavior', () => {
     const pts1 = ghost.eat();
     expect(pts1).toBe(200);
     expect(ghost.mode).toBe(GhostMode.Eaten);
-    const pts2 = ghost.eat(); // eating again shouldn't happen in real game but test streak reset after house
-    expect(pts2).toBe(400);
+    // After being eaten, ghost should be in Eaten mode; further eat attempts are invalid until it returns to house.
   });
 
   it('returns to house and resets to scatter with streak cleared', () => {

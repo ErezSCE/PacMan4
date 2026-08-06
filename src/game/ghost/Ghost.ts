@@ -1,4 +1,4 @@
-import { Direction } from "../input/types";
+import { Direction } from "../../input/types";
 import { GhostMode } from "./GhostMode";
 
 /**
@@ -42,6 +42,15 @@ export class Ghost {
     housePosition: { x: number; y: number },
     baseSpeed: number = 1,
   ) {
+    if (baseSpeed <= 0) {
+      throw new Error('baseSpeed must be positive');
+    }
+    if (!scatterTarget || typeof scatterTarget.x !== 'number' || typeof scatterTarget.y !== 'number') {
+      throw new Error('scatterTarget must be a valid position object');
+    }
+    if (!housePosition || typeof housePosition.x !== 'number' || typeof housePosition.y !== 'number') {
+      throw new Error('housePosition must be a valid position object');
+    }
     this.id = id;
     this.position = { ...startPos };
     this.scatterTarget = { ...scatterTarget };
@@ -98,6 +107,10 @@ export class Ghost {
 
   /** Called when Pac‑Man collides with this ghost while it is frightened */
   eat(): number {
+    // Guard: can only be eaten when in Frightened mode
+    if (this.mode !== GhostMode.Frightened) {
+      throw new Error('Ghost can only be eaten when frightened');
+    }
     // Return points based on current streak and then increment streak
     const pointsTable = [200, 400, 800, 1600];
     const index = Math.min(this.eatStreak, pointsTable.length - 1);
@@ -120,9 +133,12 @@ export class Ghost {
     // Choose axis with larger distance to move one step (pixel) per call
     if (Math.abs(dx) > Math.abs(dy)) {
       this.position.x += Math.sign(dx) * this.getSpeed();
+      // Snap to integer grid to avoid floating point drift
+      this.position.x = Math.round(this.position.x);
       this.direction = dx > 0 ? Direction.Right : Direction.Left;
     } else if (dy !== 0) {
       this.position.y += Math.sign(dy) * this.getSpeed();
+      this.position.y = Math.round(this.position.y);
       this.direction = dy > 0 ? Direction.Down : Direction.Up;
     }
     // If reached target (within speed tolerance) snap to target
@@ -149,7 +165,7 @@ export class Ghost {
       case GhostMode.Eaten:
         this.moveTowards(this.housePosition);
         // When reached house, switch back to Scatter (or whatever timer dictates)
-        if (this.position.x === this.housePosition.x && this.position.y === this.housePosition.y) {
+        if (Math.abs(this.position.x - this.housePosition.x) < 0.01 && Math.abs(this.position.y - this.housePosition.y) < 0.01) {
           this.setMode(GhostMode.Scatter);
           this.resetEatStreak();
         }
