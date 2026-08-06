@@ -1,5 +1,7 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { Engine } from '../game/Engine';
+import { FruitIndicator } from './FruitIndicator';
+import { Fruit } from '../game/Fruit';
 
 /**
  * GameCanvas component renders the HTML5 canvas used by the Pac-Man game.
@@ -11,6 +13,9 @@ export const GameCanvas: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<Engine>(new Engine());
+  // Expose engine for testing purposes (Cypress)
+  (window as any).engine = engineRef.current;
+  const [fruit, setFruit] = useState<Fruit | null>(null);
 
   const BASE_WIDTH = 800;
   const BASE_HEIGHT = 600;
@@ -37,6 +42,9 @@ export const GameCanvas: React.FC = () => {
   // Main animation loop – only redraw when engine reports a change
   const animationLoop = () => {
     const needsRedraw = engineRef.current.tick();
+    const state = engineRef.current.getState();
+    // Update fruit state for UI indicator
+    setFruit(state.fruit);
     if (needsRedraw && canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
       if (ctx) {
@@ -72,6 +80,8 @@ export const GameCanvas: React.FC = () => {
   return (
     <div ref={containerRef} data-testid="game-canvas-container" style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
       <canvas ref={canvasRef} data-testid="game-canvas" />
+    </div>
+      <FruitIndicator fruit={fruit} />
     </div>
   );
 };
