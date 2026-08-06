@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { MuteToggle } from './components/MuteToggle';
 import { InputManager } from './input/InputManager';
 import { DirectionalPad } from './components/DirectionalPad';
 import { Direction } from './input/types';
@@ -26,6 +27,7 @@ export const App: React.FC = () => {
       <p>Welcome to Pac-Man game!</p>
       <p data-testid="current-direction">Current Direction: {direction}</p>
       <DirectionalPad onDirection={handleButton} />
+      <MuteToggle />
     </div>
   );
 };
