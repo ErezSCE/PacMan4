@@ -34,11 +34,15 @@ export class GhostModeTimer {
       if (phase.durationMs <= 0 && phase.durationMs !== Infinity) {
         throw new Error(`Phase ${index} durationMs must be positive or Infinity`);
       }
+      // Infinity is only allowed for the final phase
+      if (phase.durationMs === Infinity && index !== phases.length - 1) {
+        throw new Error(`Infinity durationMs is only allowed for the final phase (phase ${index})`);
+      }
     });
     if (phases.length === 0) {
       throw new Error('GhostModeTimer requires at least one phase');
     }
-    this.phases = phases;
+    this.phases = [...phases];
   }
 
   /** Returns the current mode as GhostMode enum. */
@@ -49,6 +53,9 @@ export class GhostModeTimer {
 
   /** Advance the timer by `deltaMs` milliseconds. */
   update(deltaMs: number): void {
+    if (deltaMs < 0) {
+      throw new Error('deltaMs must be non-negative');
+    }
     this.elapsedInPhase += deltaMs;
     // Advance through phases as many times as needed if deltaMs exceeds multiple phase durations
     while (true) {

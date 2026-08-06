@@ -21,12 +21,10 @@ export const GameCanvas: React.FC = () => {
   const resizeCanvas = useCallback(() => {
     if (!containerRef.current || !canvasRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    let width = rect.width;
-    let height = width / ASPECT;
-    if (height > rect.height) {
-      height = rect.height;
-      width = height * ASPECT;
-    }
+    // Compute scaling factor to fit both width and height while preserving aspect ratio
+    const scale = Math.min(rect.width / BASE_WIDTH, rect.height / BASE_HEIGHT);
+    const width = BASE_WIDTH * scale;
+    const height = BASE_HEIGHT * scale;
     // Set internal resolution (pixel size) – keep constant for rendering
     canvasRef.current.width = BASE_WIDTH;
     canvasRef.current.height = BASE_HEIGHT;

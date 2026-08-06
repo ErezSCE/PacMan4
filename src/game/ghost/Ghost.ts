@@ -115,7 +115,8 @@ export class Ghost {
     const pointsTable = [200, 400, 800, 1600];
     const index = Math.min(this.eatStreak, pointsTable.length - 1);
     const pts = pointsTable[index];
-    this.eatStreak++;
+    // Increment streak but cap it to the max index of pointsTable
+    this.eatStreak = Math.min(this.eatStreak + 1, pointsTable.length - 1);
     // After being eaten the ghost enters Eaten mode (eye‑return)
     this.setMode(GhostMode.Eaten);
     return pts;
@@ -132,11 +133,13 @@ export class Ghost {
     const dy = target.y - this.position.y;
     // Choose axis with larger distance to move one step (pixel) per call
     if (Math.abs(dx) > Math.abs(dy)) {
-      this.position.x += Math.sign(dx) * this.getSpeed();
+      const step = Math.min(this.getSpeed(), Math.abs(dx));
+      this.position.x += Math.sign(dx) * step;
       // Do not round here; keep precise float position for smoother movement
       this.direction = dx > 0 ? Direction.Right : Direction.Left;
     } else if (dy !== 0) {
-      this.position.y += Math.sign(dy) * this.getSpeed();
+      const step = Math.min(this.getSpeed(), Math.abs(dy));
+      this.position.y += Math.sign(dy) * step;
       // Do not round here; keep precise float position for smoother movement
       this.direction = dy > 0 ? Direction.Down : Direction.Up;
     }
