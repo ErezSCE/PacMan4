@@ -9,13 +9,13 @@ expect.extend(toHaveNoViolations);
 
 describe('Accessibility tests with jest-axe', () => {
   test('DirectionalPad should have no accessibility violations', async () => {
-    const { container } = render(<DirectionalPad onDirection={() => {}} />);
+    const { container } = render(React.createElement(DirectionalPad, { onDirection: () => {} }));
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
 
   test('MuteToggle should have no accessibility violations', async () => {
-    const { container } = render(<MuteToggle />);
+    const { container } = render(React.createElement(MuteToggle, null));
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });

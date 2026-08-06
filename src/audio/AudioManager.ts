@@ -16,7 +16,7 @@ export class AudioManager {
   public static resetInstance() {
     AudioManager.instance = undefined;
   }
-  private sounds: Record<string, Howl> = {};
+  private static sounds: Record<string, Howl> = {};
   private muted: boolean = false;
   private currentLevel: number = 0;
 
@@ -53,13 +53,13 @@ export class AudioManager {
     Object.entries(soundDefs).forEach(([key, src]) => {
       const isSiren = key === 'siren';
       const SILENT_SOUND = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=';
-    this.sounds[key] = new Howl({ src: [src, SILENT_SOUND], preload: true, loop: isSiren });
+    AudioManager.sounds[key] = new Howl({ src: [src, SILENT_SOUND], preload: true, loop: isSiren });
     });
   }
 
   /** Play a sound by its key. If the sound does not exist, it is ignored. */
   public play(soundKey: string) {
-    const sound = this.sounds[soundKey];
+    const sound = AudioManager.sounds[soundKey];
     if (!sound) {
       // eslint-disable-next-line no-console
       console.warn(`AudioManager: sound "${soundKey}" not found`);
@@ -73,7 +73,7 @@ export class AudioManager {
 
   /** Play the siren sound (looped). */
   public playSiren() {
-    const siren = this.sounds['siren'];
+    const siren = AudioManager.sounds['siren'];
     if (!siren) return;
     if (this.muted) return;
     // Guard against duplicate playback
