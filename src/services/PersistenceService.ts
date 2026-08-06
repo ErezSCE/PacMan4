@@ -5,6 +5,14 @@
  * In a full implementation this would use IndexedDB via idb.
  */
 export class PersistenceService {
+  /**
+   * Load persisted settings. Currently resolves immediately but can be extended for async IndexedDB.
+   */
+  public static async load(): Promise<void> {
+    // Placeholder for async loading logic; ensure API is async.
+    return Promise.resolve();
+  }
+
   // Simple in‑memory fallback when localStorage is unavailable (e.g., Node test environment)
 
   // Simple in‑memory fallback when localStorage is unavailable (e.g., Node test environment)

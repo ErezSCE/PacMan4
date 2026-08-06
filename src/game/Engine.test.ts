@@ -37,16 +37,15 @@ describe('Engine', () => {
     expect(state.fruit?.type).toEqual(expect.objectContaining({ name: expect.any(String), points: expect.any(Number) }));
   });
 
-  test('advances level and resets levelAdvanced flag', () => {
+  test('advances level and applies scaling', () => {
     // eat all dots to trigger level advance
     for (let i = 0; i < 240; i++) {
       engine.eatDot();
     }
     const state = engine.getState();
     expect(state.level).toBe(2);
-    // internal flag should be false after advance
-    // @ts-ignore accessing private field for test purposes
-    expect((engine as any).levelAdvanced).toBe(false);
+    expect(state.ghostSpeed).toBeCloseTo(1.1);
+    expect(state.scaredDuration).toBe(7500);
   });
 
   test('tick clears inactive fruit', () => {

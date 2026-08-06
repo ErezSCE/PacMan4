@@ -4,6 +4,7 @@
  * Handles state updates, diffing, and lazy asset loading.
  */
 import { Direction } from "../input/types";
+import { audioManager } from "../audio/AudioManager";
 import { Fruit, FruitType } from "./Fruit";
 import type { LevelData } from "../assets/levels/level1";
 import type { SpriteSheet } from "../assets/sprites/spriteSheet";
@@ -46,7 +47,7 @@ export class Engine {
   };
   private prevState: GameState | null = null;
   private assetsLoaded = false;
-  private levelAdvanced: boolean = false;
+  // Removed levelAdvanced flag; level advancement is handled by state reset
 
 private levelData: LevelData | null = null;
   private spriteSheet: SpriteSheet | null = null;
@@ -80,11 +81,7 @@ private levelData: LevelData | null = null;
   /** Simulate eating a dot */
   eatDot() {
     if (this.state.remainingDots <= 0) {
-      // If called after all dots are already eaten, ensure level advancement occurs once.
-      if (!this.levelAdvanced) {
-        this.levelAdvanced = true;
-        this.advanceLevel();
-      }
+      // All dots already eaten; no further action.
       return;
     }
     this.state.remainingDots--;
