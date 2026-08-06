@@ -21,7 +21,7 @@ export const MuteToggle: React.FC = () => {
   };
 
   return (
-    <button data-testid="mute-toggle" onClick={toggle} aria-label="Mute toggle">
+    <button data-testid="mute-toggle" onClick={toggle} aria-label="Mute toggle" aria-pressed={muted}>
       {muted ? 'Unmute' : 'Mute'}
     </button>
   );

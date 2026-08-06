@@ -32,7 +32,7 @@ export const GameCanvas: React.FC = () => {
     // Apply CSS scaling
     canvasRef.current.style.width = `${width}px`;
     canvasRef.current.style.height = `${height}px`;
-  };
+  }, []);
 
   // Main animation loop – only redraw when engine reports a change
   const animationLoop = () => {
