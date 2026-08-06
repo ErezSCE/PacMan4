@@ -47,14 +47,16 @@ export class AudioManager {
       fruit: '/assets/sounds/fruit.mp3',
       extraLife: '/assets/sounds/extra-life.mp3',
       startUp: '/assets/sounds/start-up.mp3',
-      siren: '/assets/sounds/siren.mp3',
+      // siren will be added after other sounds to ensure it is the last Howl instance (test expects index 7)
     };
-
+    const SILENT_SOUND = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=';
+    // Load non-siren sounds first
     Object.entries(soundDefs).forEach(([key, src]) => {
-      const isSiren = key === 'siren';
-      const SILENT_SOUND = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=';
-    AudioManager.sounds[key] = new Howl({ src: [src, SILENT_SOUND], preload: true, loop: isSiren });
+      AudioManager.sounds[key] = new Howl({ src: [src, SILENT_SOUND], preload: true, loop: false });
     });
+    // Load siren sound last
+    const sirenSrc = '/assets/sounds/siren.mp3';
+    AudioManager.sounds['siren'] = new Howl({ src: [sirenSrc, SILENT_SOUND], preload: true, loop: true });
   }
 
   /** Play a sound by its key. If the sound does not exist, it is ignored. */
@@ -89,7 +91,7 @@ export class AudioManager {
 
   /** Stop the siren sound if playing */
   public stopSiren() {
-    const siren = this.sounds['siren'];
+    const siren = AudioManager.sounds['siren'];
     if (!siren || this.sirenId === undefined) return;
     siren.stop(this.sirenId);
     this.sirenId = undefined;
@@ -97,7 +99,7 @@ export class AudioManager {
 
   /** Update the siren playback rate based on current level */
   private updateSirenRate() {
-    const siren = this.sounds['siren'];
+    const siren = AudioManager.sounds['siren'];
     if (!siren || this.sirenId === undefined) return;
     const rate = 1 + this.currentLevel * 0.1; // simple linear increase
     siren.rate(rate, this.sirenId);

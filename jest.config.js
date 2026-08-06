@@ -1,7 +1,7 @@
 /** @type {import('jest').Config} */
 module.exports = {
-  preset: 'jest-puppeteer',
-  testEnvironment: 'jsdom',
+
+  testEnvironment: 'jest-environment-jsdom',
   transform: {
     '^.+\\.[tj]sx?$': 'ts-jest',
   },

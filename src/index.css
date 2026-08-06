@@ -6,3 +6,7 @@ button:focus-visible, [role="button"]:focus-visible {
   outline-offset: 2px;
 }
 body { margin: 0; font-family: sans-serif; }
+
+.fruit-indicator {
+  margin-top: 8px;
+}
