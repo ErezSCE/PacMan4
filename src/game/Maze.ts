@@ -62,3 +62,4 @@ export class Maze {
   public getCellSize(): number {
     return this.cellSize;
   }
+}

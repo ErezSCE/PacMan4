@@ -111,18 +111,9 @@ export class GameEngine {
   }
 
   /** Update game state – called each frame */
-  private timeAccumulator: number = 0;
-
-  public update(deltaMs: number) {
-    // Accumulate time and move at a fixed step interval (e.g., 100ms per move)
-    this.timeAccumulator += deltaMs;
-    const stepInterval = 100; // ms per movement step
-    if (this.timeAccumulator < stepInterval) {
-      return; // not enough time elapsed for a move
-    }
-    // Consume the interval
-    this.timeAccumulator -= stepInterval;
-
+  // Removed time accumulator for deterministic per‑frame movement as required by unit tests.
+  public update(_deltaMs: number) {
+    // Movement is processed per update call regardless of elapsed time.
     if (!this.direction) return; // no movement requested
     const { x, y } = this.state.pacMan;
     const [dx, dy] = this.directionToDelta(this.direction);
