@@ -4,9 +4,13 @@
  * Handles state updates, diffing, and lazy asset loading.
  */
 import { Direction } from "../input/types";
-import { Fruit } from "./Fruit";
+import { Fruit, FruitType } from "./Fruit";
 
-export type FruitState = Readonly<Fruit>;
+export interface FruitInfo {
+  active: boolean;
+  spawnLevel: number;
+  type: FruitType;
+}
 
 export interface GameState {
   direction: Direction;
@@ -18,28 +22,7 @@ export interface GameState {
   // Current level number (1‑based)
   level: number;
   // Active fruit, if any
-  fruit: FruitState | null;
-  // Ghost speed multiplier (1 = base speed)
-  ghostSpeed: number;
-  // Scared state duration in ms
-  scaredDuration: number;
-  // Player score
-  score: number;
-}
-
-  // ... other fields ...
-  // ... other fields ...
-
-  direction: Direction;
-  // Add more properties as needed (e.g., player position, score)
-  // Track remaining dots in the current level
-  remainingDots: number;
-  // Number of dots eaten in current level
-  dotsEaten: number;
-  // Current level number (1‑based)
-  level: number;
-  // Active fruit, if any
-  fruit: Fruit | null;
+  fruit: FruitInfo | null;
   // Ghost speed multiplier (1 = base speed)
   ghostSpeed: number;
   // Scared state duration in ms
@@ -61,7 +44,7 @@ export class Engine {
   };
   private prevState: GameState | null = null;
   private assetsLoaded = false;
-  // Removed levelAdvanced flag as it was unused
+  private levelAdvanced: boolean = false;
   private levelData: any = null;
   private spriteSheet: any = null;
 
