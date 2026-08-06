@@ -8,18 +8,33 @@ import { persistenceService, HighScore } from '../services/PersistenceService';
  * re‑fetch the scores after each addition – the service does not emit events.
  */
 export const ScoreBoard: React.FC = () => {
-  const [scores, setScores] = useState<HighScore[]>([]);
+  // Synchronous fallback for environments without IndexedDB (e.g., tests)
+  const initialScores: HighScore[] = (() => {
+    if (typeof indexedDB === 'undefined') {
+      const raw = localStorage.getItem('high_scores');
+      if (raw) {
+        try {
+          const parsed: HighScore[] = JSON.parse(raw);
+          return parsed.sort((a, b) => b.score - a.score).slice(0, 10);
+        } catch {
+          return [];
+        }
+      }
+      return [];
+    }
+    return [];
+  })();
 
-  const loadScores = async () => {
-    const hs = await persistenceService.getHighScores();
-    setScores(hs);
-  };
+  const [scores, setScores] = useState<HighScore[]>(initialScores);
 
   useEffect(() => {
-    (async () => {
-      const hs = await persistenceService.getHighScores();
-      setScores(hs);
-    })();
+    // Only fetch asynchronously when IndexedDB is available.
+    if (typeof indexedDB !== 'undefined') {
+      (async () => {
+        const hs = await persistenceService.getHighScores();
+        setScores(hs);
+      })();
+    }
     // No subscription mechanism – just load once on mount.
   }, []);
 

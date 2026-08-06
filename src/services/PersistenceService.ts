@@ -70,6 +70,8 @@ class PersistenceService {
           },
         });
       } catch (e) {
+        // Reset dbPromise so subsequent calls can retry.
+        this.dbPromise = null;
         // Propagate error so callers can handle fallback.
         throw new Error('Failed to open IndexedDB');
       }
@@ -112,16 +114,50 @@ class PersistenceService {
     return { colorBlindMode: false, mute: false };
   }
 
+  // Retrieve the full Settings record (including timestamps) from storage.
+  private async getSettingsRecord(): Promise<Settings | undefined> {
+    if (!this.isIDBAvailable) {
+      const raw = localStorage.getItem('settings');
+      if (raw) {
+        try {
+          const parsed: Settings = JSON.parse(raw);
+          return parsed;
+        } catch {
+          return undefined;
+        }
+      }
+      return undefined;
+    }
+    try {
+      const db = await this.getDB();
+      const result = await db.get(PersistenceService.SETTINGS_STORE, 1);
+      return result as Settings | undefined;
+    } catch {
+      // Fallback to localStorage on DB errors.
+      const raw = localStorage.getItem('settings');
+      if (raw) {
+        try {
+          const parsed: Settings = JSON.parse(raw);
+          return parsed;
+        } catch {
+          return undefined;
+        }
+      }
+      return undefined;
+    }
+  }
+
   async setSettings(settings: { colorBlindMode?: boolean; mute?: boolean }): Promise<void> {
     // Merge provided partial settings with existing persisted values to avoid
     // unintentionally overwriting unspecified fields.
-    const existing = await this.getSettings();
+    const existingPartial = await this.getSettings();
+    const existingFull = await this.getSettingsRecord();
     const now = Date.now();
     const payload = {
       id: 1,
-      color_blind_mode: settings.colorBlindMode ?? existing.colorBlindMode,
-      mute: settings.mute ?? existing.mute,
-      created_at: now,
+      color_blind_mode: settings.colorBlindMode ?? existingPartial.colorBlindMode,
+      mute: settings.mute ?? existingPartial.mute,
+      created_at: existingFull?.created_at ?? now,
       updated_at: now,
     };
     if (!this.isIDBAvailable) {
@@ -153,13 +189,31 @@ class PersistenceService {
       }
       return [];
     }
-    const db = await this.getDB();
-    const all: HighScore[] = await db.getAll(PersistenceService.HIGH_SCORES_STORE);
-    return all.sort((a, b) => b.score - a.score).slice(0, 10);
+    try {
+      const db = await this.getDB();
+      const all: HighScore[] = await db.getAll(PersistenceService.HIGH_SCORES_STORE);
+      return all.sort((a, b) => b.score - a.score).slice(0, 10);
+    } catch {
+      // Fallback to localStorage on DB errors (e.g., private mode)
+      const raw = localStorage.getItem('high_scores');
+      if (raw) {
+        try {
+          const parsed: HighScore[] = JSON.parse(raw);
+          return parsed.sort((a, b) => b.score - a.score).slice(0, 10);
+        } catch {
+          return [];
+        }
+      }
+      return [];
+    }
   }
 
   async addHighScore(initials: string, score: number): Promise<void> {
     const now = Date.now();
+    // Validate initials: must be exactly three uppercase letters.
+    if (!/^[A-Z]{3}$/.test(initials)) {
+      throw new Error('Initials must be three uppercase letters');
+    }
     const entry: HighScore = {
       initials,
       score,
@@ -168,7 +222,15 @@ class PersistenceService {
     };
     if (!this.isIDBAvailable) {
       const raw = localStorage.getItem('high_scores');
-      const existing: HighScore[] = raw ? JSON.parse(raw) : [];
+      let existing: HighScore[] = [];
+      if (raw) {
+        try {
+          existing = JSON.parse(raw);
+        } catch {
+          // Corrupted data, start fresh
+          existing = [];
+        }
+      }
       existing.push(entry);
       const sorted = existing.sort((a, b) => b.score - a.score).slice(0, 10);
       localStorage.setItem('high_scores', JSON.stringify(sorted));

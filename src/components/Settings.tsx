@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { persistenceService } from '../services/PersistenceService';
-
 /**
  * Settings component allows the player to toggle color‑blind mode and mute.
  * It reads the current settings from PersistenceService on mount and updates
@@ -20,16 +20,19 @@ export const Settings: React.FC = () => {
     load();
   }, []);
 
-  const handleColorBlindChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleColorBlindChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const checked = e.target.checked;
-    setColorBlind(checked);
-    await persistenceService.setSettings({ colorBlindMode: checked, mute });
+    // Ensure state update is flushed synchronously for immediate UI reflection
+    flushSync(() => setColorBlind(checked));
+    // Persist settings without awaiting to keep UI responsive
+    persistenceService.setSettings({ colorBlindMode: checked, mute });
   };
 
-  const handleMuteChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMuteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const checked = e.target.checked;
-    setMute(checked);
-    await persistenceService.setSettings({ mute: checked, colorBlindMode: colorBlind });
+    flushSync(() => setMute(checked));
+    // Persist settings without awaiting to keep UI responsive
+    persistenceService.setSettings({ mute: checked, colorBlindMode: colorBlind });
   };
 
   return (
