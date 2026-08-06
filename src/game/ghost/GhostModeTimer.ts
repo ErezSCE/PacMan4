@@ -7,6 +7,8 @@
  * The timer is driven by `update(delta)` where `delta` is the elapsed time in
  * milliseconds since the previous update call.
  */
+import { GhostMode } from "./GhostMode";
+
 export type ModePhase = {
   mode: GhostMode; // Only Scatter or Chase are valid for phases
   durationMs: number;
@@ -26,6 +28,12 @@ export class GhostModeTimer {
    *    {mode: 'scatter', durationMs: 5000}, {mode: 'chase', durationMs: Infinity}]
    */
   constructor(phases: ModePhase[]) {
+    // Validate that each phase has a valid mode (Scatter or Chase) and a positive duration (or Infinity for final)
+    phases.forEach((phase, index) => {
+      if (phase.mode !== GhostMode.Scatter && phase.mode !== GhostMode.Chase) {
+        throw new Error(`Phase ${index} has invalid mode: ${phase.mode}`);
+      }
+    });
     // Validate that each phase has a positive duration (or Infinity for the final phase)
     phases.forEach((phase, index) => {
       if (typeof phase.durationMs !== 'number' || (!Number.isFinite(phase.durationMs) && phase.durationMs !== Infinity)) {
