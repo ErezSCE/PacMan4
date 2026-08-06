@@ -47,8 +47,7 @@ export class Engine {
   private prevState: GameState | null = null;
   private assetsLoaded = false;
   private levelAdvanced: boolean = false;
-  private levelData: import('../assets/levels/level1').LevelData | null = null;
-  private spriteSheet: import('../assets/sprites/spriteSheet').SpriteSheet | null = null;
+
 
   /** Load level data and sprite sheet lazily via dynamic import */
   async loadAssets(): Promise<void> {
@@ -69,7 +68,7 @@ export class Engine {
       this.levelData = level;
       this.spriteSheet = sprite;
       this.assetsLoaded = true;
-    } catch (err) {
+    } catch (err: unknown) {
       // Re‑throw with a descriptive message to aid debugging
       throw new Error(`Failed to load assets: ${(err as Error).message}`);
     }
@@ -138,9 +137,9 @@ export class Engine {
   }
 
   /** Get the current state */
-  // Returns the live state object. Consumers should treat it as read‑only.
-  getState(): GameState {
-    return this.state;
+  // Returns a shallow copy of the state to enforce read‑only usage.
+  getState(): Readonly<GameState> {
+    return { ...this.state } as Readonly<GameState>;
   }
 
   /** Determine if the state has changed since last frame */

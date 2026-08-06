@@ -28,7 +28,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({ highScores, onStart })
           </li>
         ))}
       </ol>
-      <button data-testid="start-button" onClick={onStart}>
+      <button data-testid="start-button" onClick={onStart} aria-label="Start game">
         Start
       </button>
     </div>
