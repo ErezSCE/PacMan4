@@ -20,6 +20,13 @@ export interface Settings {
 }
 
 /**
+ * Database schema for idb.
+ */
+export interface PacmanDB {
+  high_scores: HighScore;
+  settings: Settings;
+}
+/**
  * PersistenceService handles storage of high scores and player settings.
  * It uses IndexedDB via the idb library, falling back to localStorage when
  * IndexedDB is unavailable (e.g., in private browsing mode).
@@ -29,65 +36,79 @@ class PersistenceService {
   private static readonly DB_VERSION = 1;
   private static readonly HIGH_SCORES_STORE = 'high_scores';
   private static readonly SETTINGS_STORE = 'settings';
-  private dbPromise: Promise<IDBPDatabase<any>> | null = null;
+  private dbPromise: Promise<IDBPDatabase<PacmanDB>> | null = null;
 
   private get isIDBAvailable(): boolean {
+    // Basic check for existence; actual availability is verified when attempting to open the DB.
     return typeof indexedDB !== 'undefined';
   }
 
-  private async getDB(): Promise<IDBPDatabase<any>> {
+  /**
+   * Attempts to open the IndexedDB database. If opening fails (e.g., due to private mode),
+   * the error is caught and re‑thrown so callers can fallback to localStorage.
+   */
+  private async getDB(): Promise<IDBPDatabase<PacmanDB>> {
     if (!this.isIDBAvailable) {
-      // This path should never be called when IDB is unavailable because we
-      // short‑circuit to localStorage in the public methods.
       throw new Error('IndexedDB not available');
     }
     if (!this.dbPromise) {
-      this.dbPromise = openDB(PersistenceService.DB_NAME, PersistenceService.DB_VERSION, {
-        upgrade(db) {
-          if (!db.objectStoreNames.contains(PersistenceService.HIGH_SCORES_STORE)) {
-            const hsStore = db.createObjectStore(PersistenceService.HIGH_SCORES_STORE, {
-              keyPath: 'id',
-              autoIncrement: true,
-            });
-            hsStore.createIndex('score', 'score');
-          }
-          if (!db.objectStoreNames.contains(PersistenceService.SETTINGS_STORE)) {
-            const setStore = db.createObjectStore(PersistenceService.SETTINGS_STORE, {
-              keyPath: 'id',
-            });
-          }
-        },
-      });
+      try {
+        this.dbPromise = openDB<PacmanDB>(PersistenceService.DB_NAME, PersistenceService.DB_VERSION, {
+          upgrade(db) {
+            if (!db.objectStoreNames.contains(PersistenceService.HIGH_SCORES_STORE)) {
+              const hsStore = db.createObjectStore(PersistenceService.HIGH_SCORES_STORE, {
+                keyPath: 'id',
+                autoIncrement: true,
+              });
+              hsStore.createIndex('score', 'score');
+            }
+            if (!db.objectStoreNames.contains(PersistenceService.SETTINGS_STORE)) {
+              db.createObjectStore(PersistenceService.SETTINGS_STORE, {
+                keyPath: 'id',
+              });
+            }
+          },
+        });
+      } catch (e) {
+        // Propagate error so callers can handle fallback.
+        throw new Error('Failed to open IndexedDB');
+      }
     }
     return this.dbPromise;
   }
 
   /** Settings ----------------------------------------------------------- */
   async getSettings(): Promise<{ colorBlindMode: boolean; mute: boolean }> {
-    if (!this.isIDBAvailable) {
-      const raw = localStorage.getItem('settings');
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw);
+    // Attempt IndexedDB first; fallback to localStorage on any failure.
+    // Attempt to read from IndexedDB first.
+    if (this.isIDBAvailable) {
+      try {
+        const db = await this.getDB();
+        const result = await db.get(PersistenceService.SETTINGS_STORE, 1);
+        if (result) {
           return {
-            colorBlindMode: !!parsed.color_blind_mode,
-            mute: !!parsed.mute,
+            colorBlindMode: !!result.color_blind_mode,
+            mute: !!result.mute,
           };
-        } catch {
-          // fall through to defaults
         }
+        // If result is undefined, fall through to localStorage fallback.
+      } catch {
+        // Fall back to localStorage below.
       }
-      return { colorBlindMode: false, mute: false };
     }
-    const db = await this.getDB();
-    const result = await db.get(PersistenceService.SETTINGS_STORE, 1);
-    if (result) {
-      return {
-        colorBlindMode: !!result.color_blind_mode,
-        mute: !!result.mute,
-      };
+    // LocalStorage fallback path.
+    const raw = localStorage.getItem('settings');
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        return {
+          colorBlindMode: !!parsed.color_blind_mode,
+          mute: !!parsed.mute,
+        };
+      } catch {
+        // fall through to defaults
+      }
     }
-    // defaults
     return { colorBlindMode: false, mute: false };
   }
 
@@ -107,8 +128,15 @@ class PersistenceService {
       localStorage.setItem('settings', JSON.stringify(payload));
       return;
     }
-    const db = await this.getDB();
-    await db.put(PersistenceService.SETTINGS_STORE, payload);
+    try {
+      const db = await this.getDB();
+      await db.put(PersistenceService.SETTINGS_STORE, payload);
+      // Also persist to localStorage for consistency/fallback.
+      localStorage.setItem('settings', JSON.stringify(payload));
+    } catch {
+      // Fallback to localStorage on any IndexedDB error.
+      localStorage.setItem('settings', JSON.stringify(payload));
+    }
   }
 
   /** High Scores -------------------------------------------------------- */
@@ -170,13 +198,19 @@ class PersistenceService {
       localStorage.removeItem('settings');
       return;
     }
-    const db = await this.getDB();
-    const tx = db.transaction([PersistenceService.HIGH_SCORES_STORE, PersistenceService.SETTINGS_STORE], 'readwrite');
-    await Promise.all([
-      tx.objectStore(PersistenceService.HIGH_SCORES_STORE).clear(),
-      tx.objectStore(PersistenceService.SETTINGS_STORE).clear(),
-    ]);
-    await tx.done;
+    // Attempt to clear object stores; if that fails, delete the entire DB for a clean reset.
+    try {
+      const db = await this.getDB();
+      const tx = db.transaction([PersistenceService.HIGH_SCORES_STORE, PersistenceService.SETTINGS_STORE], 'readwrite');
+      await Promise.all([
+        tx.objectStore(PersistenceService.HIGH_SCORES_STORE).clear(),
+        tx.objectStore(PersistenceService.SETTINGS_STORE).clear(),
+      ]);
+      await tx.done;
+    } catch {
+      // If clearing fails (e.g., DB not opened), delete the DB entirely.
+      await deleteDB(PersistenceService.DB_NAME);
+    }
   }
 }
 

@@ -7,6 +7,11 @@ import { persistenceService, HighScore } from './PersistenceService';
  */
 
 describe('PersistenceService (localStorage fallback)', () => {
+  beforeAll(() => {
+    // Ensure IndexedDB is undefined to force fallback to localStorage in JSDOM.
+    // @ts-ignore
+    (global as any).indexedDB = undefined;
+  });
   beforeEach(async () => {
     // Ensure a clean slate before each test
     await persistenceService.clearAll();

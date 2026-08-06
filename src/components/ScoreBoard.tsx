@@ -16,7 +16,10 @@ export const ScoreBoard: React.FC = () => {
   };
 
   useEffect(() => {
-    loadScores();
+    (async () => {
+      const hs = await persistenceService.getHighScores();
+      setScores(hs);
+    })();
     // No subscription mechanism – just load once on mount.
   }, []);
 
