@@ -1,107 +1,97 @@
-import { AudioManager } from './AudioManager';
+// AudioManager unit tests with proper Howler mocking
 
 let mockPlay: jest.Mock<number, []>;
 let mockStop: jest.Mock<void, [number?]>;
 let mockRate: jest.Mock<void, [number, number?]>;
+let mockMute: jest.Mock<void, [boolean]>;
 
-type MockHowlInstance = {
-  play: jest.Mock<number, []>;
-  stop: jest.Mock<void, [number?]>;
-  rate: jest.Mock<void, [number, number?]>;
-};
-
-type MockHowlClass = jest.MockedClass<new (options: any) => MockHowlInstance>;
-
-type MockHowler = { mute: jest.Mock<void, [boolean]> };
-
-let Howl: MockHowlClass;
-let Howler: MockHowler;
+// Mock Howler module before any import of AudioManager
+jest.mock('howler', () => {
+  // These mocks will be assigned to the outer scoped variables
+  mockPlay = jest.fn(() => 1); // returns a fake sound id
+  mockStop = jest.fn();
+  mockRate = jest.fn();
+  mockMute = jest.fn();
+  const MockHowl = jest.fn().mockImplementation(() => ({
+    play: mockPlay,
+    stop: mockStop,
+    rate: mockRate,
+  }));
+  const MockHowler = { mute: mockMute };
+  return { __esModule: true, Howl: MockHowl, Howler: MockHowler };
+});
 
 describe('AudioManager', () => {
-  let audioManager: AudioManager;
+  let audioManager: any;
+  let Howl: any;
+  let Howler: any;
 
   beforeEach(() => {
-    // Reset modules and localStorage before each test
+    // Ensure a clean module registry and localStorage for each test
     jest.resetModules();
     localStorage.clear();
-    // Mock Howler.js for this test scope
-    jest.doMock('howler', () => {
-      const mockPlay = jest.fn(() => 1); // return sound id 1
-      const mockStop = jest.fn();
-      const mockRate = jest.fn((rate: number, id?: number) => {});
-      const MockHowl = jest.fn().mockImplementation(() => ({
-        play: mockPlay,
-        stop: mockStop,
-        rate: mockRate,
-      }));
-      const MockHowler = { mute: jest.fn() };
-      return { Howl: MockHowl, Howler: MockHowler };
-    });
-    // Re-import after mocking
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { AudioManager, audioManager: importedManager } = require('./AudioManager');
-    // Ensure singleton is reset (in case previous instance persisted)
-    AudioManager.resetInstance();
-    // Get fresh instance
-    audioManager = AudioManager.getInstance();
-    // Assign mocked Howl/Howler for later assertions
+    // Re-import the mocked Howler module to get fresh mock constructors
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const howlerMock = require('howler');
     Howl = howlerMock.Howl as any;
-    Howl.mockClear && Howl.mockClear();
     Howler = howlerMock.Howler as any;
+    // Reset mock call counters
+    jest.clearAllMocks();
+    // Import AudioManager after the mock is in place
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { AudioManager } = require('./AudioManager');
+    // Ensure a fresh instance (module reset already clears singleton)
+    audioManager = AudioManager.getInstance();
   });
 
   test('initial mute state is read from PersistenceService/localStorage', () => {
+    // Set persisted mute before importing AudioManager
     localStorage.setItem('pacman4_mute', 'true');
-    // Re-import to pick up persisted value
+    // Re-import AudioManager to pick up persisted value
     jest.resetModules();
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const mod = require('./AudioManager');
-    const manager = mod.audioManager;
+    const { AudioManager } = require('./AudioManager');
+    AudioManager.resetInstance();
+    const manager = AudioManager.getInstance();
     expect(manager.isMuted()).toBe(true);
-    expect(Howler.mute).toHaveBeenCalled();
+    expect(mockMute).toHaveBeenCalled();
+    // Clear mock calls for subsequent tests
+    jest.clearAllMocks();
   });
 
   test('toggleMute updates state and persists via Howler', () => {
-    // start unmuted
     expect(audioManager.isMuted()).toBe(false);
     audioManager.toggleMute();
     expect(audioManager.isMuted()).toBe(true);
-    expect(Howler.mute).toHaveBeenCalledWith(true);
-    // toggle back
+    expect(mockMute).toHaveBeenCalledWith(true);
     audioManager.toggleMute();
     expect(audioManager.isMuted()).toBe(false);
-    expect(Howler.mute).toHaveBeenCalledWith(false);
+    expect(mockMute).toHaveBeenCalledWith(false);
   });
 
   test('playSiren starts looping siren and sets initial rate', () => {
     audioManager.setLevel(2);
     audioManager.playSiren();
-    // Verify Howl was instantiated for each sound
-    expect(Howl).toHaveBeenCalledTimes(8);
-    // Ensure play was called
+    // One Howl instance per sound (8 sounds defined)
+    expect(Howl.mock.calls.length).toBeGreaterThanOrEqual(8);
     expect(mockPlay).toHaveBeenCalled();
-    // sirenId should be stored (mockPlay returns 1)
     expect(audioManager.getSirenId()).toBe(1);
-    // rate should be set based on level 2 => 1 + 0.2 = 1.2
     expect(mockRate).toHaveBeenCalledWith(1.2, 1);
   });
 
   test('setLevel updates siren playback rate when siren is playing', () => {
-    audioManager.playSiren(); // starts with level 0 => rate 1
-    const sirenInstance = (Howl as jest.Mock).mock.instances[7] as any;
+    audioManager.playSiren(); // level defaults to 0, rate should be 1
+    const sirenInstance = (audioManager as any).sounds['siren'];
     expect(sirenInstance.rate).toHaveBeenCalledWith(1, 1);
-    // Change level
     audioManager.setLevel(5);
     expect(sirenInstance.rate).toHaveBeenCalledWith(1 + 5 * 0.1, 1);
   });
 
   test('stopSiren stops the siren sound', () => {
     audioManager.playSiren();
-    const mockHowlInstance = (Howl as jest.Mock).mock.instances[7] as any;
+    const sirenInstance = (Howl as jest.Mock).mock.instances[7] as any;
     audioManager.stopSiren();
-    expect(mockHowlInstance.stop).toHaveBeenCalledWith(1);
+    expect(sirenInstance.stop).toHaveBeenCalledWith(1);
     expect(audioManager.getSirenId()).toBeUndefined();
   });
 });

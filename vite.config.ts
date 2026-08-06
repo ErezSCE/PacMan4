@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import gzipPlugin from 'rollup-plugin-gzip';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), gzipPlugin()],
   build: {
     outDir: 'dist',
     rollupOptions: {

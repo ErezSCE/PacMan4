@@ -19,7 +19,6 @@ describe('Performance benchmark (60fps)', () => {
     execSync('npm run build', { stdio: 'inherit' });
     serverProcess = spawn('npm', ['run', 'preview'], {
       stdio: 'ignore',
-      detached: true,
     });
     // Give the server a moment to start
     return new Promise((resolve) => setTimeout(resolve, 3000));
