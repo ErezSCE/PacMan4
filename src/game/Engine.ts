@@ -22,7 +22,7 @@ export interface GameState {
   // Current level number (1‑based)
   level: number;
   // Active fruit, if any
-  fruit: FruitInfo | null;
+  fruit: Fruit | null;
   // Ghost speed multiplier (1 = base speed)
   ghostSpeed: number;
   // Scared state duration in ms
@@ -79,6 +79,7 @@ export class Engine {
     if (this.state.remainingDots <= 0) {
       // If called after all dots are already eaten, ensure level advancement occurs once.
       if (!this.levelAdvanced) {
+        this.levelAdvanced = true;
         this.advanceLevel();
       }
       return;
@@ -130,25 +131,10 @@ export class Engine {
     this.levelAdvanced = false;
   }
 
-  /** Get a copy of the current state */
-  /**
-   * Return a deep copy of the current state to prevent external mutation.
-   * The fruit object is cloned without its methods to ensure immutability.
-   */
+  /** Get the current state */
+  // Returns the live state object. Consumers should treat it as read‑only.
   getState(): GameState {
-    const fruitCopy = this.state.fruit
-      ? {
-          // Clone primitive properties
-          active: this.state.fruit.active,
-          spawnLevel: this.state.fruit.spawnLevel,
-          // Clone type object
-          type: { ...this.state.fruit.type },
-        } as any // cast to any to satisfy Fruit type without methods
-      : null;
-    return {
-      ...this.state,
-      fruit: fruitCopy,
-    };
+    return this.state;
   }
 
   /** Determine if the state has changed since last frame */

@@ -24,13 +24,15 @@ describe('Engine', () => {
     expect(state.fruit?.type.name).toBeDefined();
   });
 
-  test('getState returns fruit info without methods', () => {
+  test('getState returns live Fruit instance with methods', () => {
     for (let i = 0; i < 70; i++) {
       engine.eatDot();
     }
     const state = engine.getState();
-    // @ts-ignore - we expect no collect method on fruit info
-    expect(state.fruit?.collect).toBeUndefined();
+    expect(state.fruit).not.toBeNull();
+    // Fruit instance should have collect method
+    // @ts-ignore - accessing method for test
+    expect(typeof state.fruit?.collect).toBe('function');
     expect(state.fruit?.type).toEqual(expect.objectContaining({ name: expect.any(String), points: expect.any(Number) }));
   });
 
@@ -50,13 +52,12 @@ describe('Engine', () => {
     for (let i = 0; i < 70; i++) {
       engine.eatDot();
     }
-    // @ts-ignore access private currentFruit
-    const fruitInstance = (engine as any).currentFruit as any;
-    // simulate timeout
-    fruitInstance.active = false;
-    // also update state fruit info to reflect inactive
-    // @ts-ignore private state
-    engine.state.fruit!.active = false;
+    // Get the live fruit instance from state
+    const fruitInstance = engine.getState().fruit as any;
+    // Simulate timeout by advancing timers
+    jest.advanceTimersByTime(10000);
+    // Ensure the fruit instance is now inactive
+    expect(fruitInstance.active).toBe(false);
     const changed = engine.tick();
     const state = engine.getState();
     expect(state.fruit).toBeNull();
