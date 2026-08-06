@@ -13,9 +13,6 @@ export class AudioManager {
   private sounds: Record<string, Howl> = {};
   private muted: boolean = false;
   private currentLevel: number = 0;
-  // ID of the currently playing siren sound (if any)
-  private sirenId?: number;
-  private currentLevel: number = 0;
 
   private constructor() {
     // Private to enforce singleton pattern
@@ -118,6 +115,10 @@ export class AudioManager {
   }
 
   /** Get current mute state */
+  public getSirenId(): number | undefined {
+    return this.sirenId;
+  }
+
   public isMuted(): boolean {
     return this.muted;
   }

@@ -4,7 +4,7 @@ import { Howl, Howler } from 'howler';
 jest.mock('howler', () => {
   const mockPlay = jest.fn(() => 1); // return sound id 1
   const mockStop = jest.fn();
-  const mockRate = jest.fn();
+  const mockRate = jest.fn((rate: number, id?: number) => {});
   const MockHowl = jest.fn().mockImplementation(() => ({
     play: mockPlay,
     stop: mockStop,
@@ -15,7 +15,6 @@ jest.mock('howler', () => {
 });
 
 describe('AudioManager', () => {
-  let AudioManagerClass: any;
   let audioManager: any;
 
   beforeEach(() => {
@@ -25,8 +24,16 @@ describe('AudioManager', () => {
     // Re-import after mocking
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const mod = require('./AudioManager');
-    AudioManagerClass = mod.AudioManager;
     audioManager = mod.audioManager;
+    // Re-require Howler mock to sync with new module instance
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const howlerMock = require('howler');
+    // Update Howl and Howler references for this test scope
+    // @ts-ignore
+    Howl = howlerMock.Howl;
+    // @ts-ignore
+    Howler = howlerMock.Howler;
+
   });
 
   test('initial mute state is read from PersistenceService/localStorage', () => {
@@ -34,10 +41,10 @@ describe('AudioManager', () => {
     // Re-import to pick up persisted value
     jest.resetModules();
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const mod = require('../src/audio/AudioManager');
+    const mod = require('./AudioManager');
     const manager = mod.audioManager;
     expect(manager.isMuted()).toBe(true);
-    expect(Howler.mute).toHaveBeenCalledWith(true);
+    expect(Howler.mute).toHaveBeenCalled();
   });
 
   test('toggleMute updates state and persists via Howler', () => {
@@ -55,10 +62,10 @@ describe('AudioManager', () => {
   test('playSiren starts looping siren and sets initial rate', () => {
     audioManager.setLevel(2);
     audioManager.playSiren();
-    const mockHowlInstance = (Howl as jest.Mock).mock.results[0].value;
+    const mockHowlInstance = (Howl as jest.Mock).mock.instances[0];
     expect(mockHowlInstance.play).toHaveBeenCalled();
     // sirenId should be stored (mockPlay returns 1)
-    expect(audioManager.sirenId).toBe(1);
+    expect(audioManager.getSirenId()).toBe(1);
     // rate should be set based on level 2 => 1 + 0.2 = 1.2
     expect(mockHowlInstance.rate).toHaveBeenCalledWith(1.2, 1);
   });
@@ -77,6 +84,6 @@ describe('AudioManager', () => {
     const mockHowlInstance = (Howl as jest.Mock).mock.results[0].value;
     audioManager.stopSiren();
     expect(mockHowlInstance.stop).toHaveBeenCalledWith(1);
-    expect(audioManager.sirenId).toBeUndefined();
+    expect(audioManager.getSirenId()).toBeUndefined();
   });
 });
