@@ -5,9 +5,9 @@
  * until after `wait` milliseconds have elapsed since the last time the debounced function was invoked.
  * The debounced function retains the same `this` context and arguments.
  */
-export function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
+export function debounce<T extends (...args: unknown[]) => unknown>(func: T, wait: number): T {
   let timeout: ReturnType<typeof setTimeout> | null = null;
-  const debounced = function (this: any, ...args: Parameters<T>) {
+  const debounced = function (this: unknown, ...args: Parameters<T>) {
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => {
       timeout = null;
