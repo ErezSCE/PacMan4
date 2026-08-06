@@ -18,6 +18,9 @@
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.4.3",
+    "@types/jest": "^29.5.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
     "@typescript-eslint/eslint-plugin": "^6.7.5",
     "@typescript-eslint/parser": "^6.7.5",
     "@vitejs/plugin-react": "^4.0.0",
@@ -31,9 +34,6 @@
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.2.2",
-    "vite": "^5.0.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@types/jest": "^29.5.0"
+    "vite": "^5.0.0"
   }
 }
