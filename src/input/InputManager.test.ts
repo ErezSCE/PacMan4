@@ -2,6 +2,11 @@
 import { InputManager } from './InputManager';
 import { Direction } from './types';
 
+// Polyfill PointerEvent for jsdom environment
+if (typeof (global as any).PointerEvent === 'undefined') {
+  (global as any).PointerEvent = MouseEvent as any;
+}
+
 describe('InputManager', () => {
   let callback: jest.Mock;
   let manager: InputManager;
@@ -46,8 +51,8 @@ describe('InputManager', () => {
 
   test('detects swipe right gesture', () => {
     // Use MouseEvent as a fallback for PointerEvent in jsdom
-    const down = new MouseEvent('pointerdown', { clientX: 0, clientY: 0 });
-    const up = new MouseEvent('pointerup', { clientX: 100, clientY: 0 });
+    const down = new PointerEvent('pointerdown', { clientX: 0, clientY: 0 });
+    const up = new PointerEvent('pointerup', { clientX: 100, clientY: 0 });
     window.dispatchEvent(down);
     window.dispatchEvent(up);
     jest.runAllTimers();

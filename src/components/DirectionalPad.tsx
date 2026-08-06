@@ -18,7 +18,7 @@ export const DirectionalPad: React.FC<DirectionalPadProps> = ({ onDirection }) =
   };
 
   return (
-    <div className="directional-pad" style={{ display: 'grid', gridTemplateAreas: "'up' 'left right' 'down'", gap: '8px', justifyItems: 'center' }}>
+    <div className="directional-pad" style={{ display: 'grid', gridTemplateAreas: "'up'" + " 'left right'" + " 'down'", gap: '8px', justifyItems: 'center' }}>
       <button
         type="button"
         aria-label="Move Up"

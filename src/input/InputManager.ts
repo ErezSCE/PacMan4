@@ -83,10 +83,11 @@ export class InputManager {
     const dy = e.clientY - this.lastTouchPos.y;
     const absDx = Math.abs(dx);
     const absDy = Math.abs(dy);
+    const threshold = 30; // minimum distance in pixels to consider a swipe
     let direction = Direction.None;
-    if (absDx > absDy) {
+    if (absDx > absDy && absDx >= threshold) {
       direction = dx > 0 ? Direction.Right : Direction.Left;
-    } else if (absDy > absDx) {
+    } else if (absDy > absDx && absDy >= threshold) {
       direction = dy > 0 ? Direction.Down : Direction.Up;
     }
     if (direction !== Direction.None) {
