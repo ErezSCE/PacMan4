@@ -6,9 +6,14 @@
  */
 export class PersistenceService {
   // Simple in‑memory fallback when localStorage is unavailable (e.g., Node test environment)
+  // Simple in‑memory fallback when localStorage is unavailable (e.g., Node test environment)
+  // Simple in‑memory fallback when localStorage is unavailable (e.g., Node test environment)
+
+  // Simple in‑memory fallback when localStorage is unavailable (e.g., Node test environment)
   private static memoryStore: Record<string, string> = {};
 
   private static MUTE_KEY = 'pacman4_mute';
+  private static COLOR_BLIND_KEY = 'pacman4_color_blind_mode';
 
   /** Get mute setting; defaults to false (not muted) */
   public static getMute(): boolean {
