@@ -127,6 +127,11 @@ export class Ghost {
     this.eatStreak = 0;
   }
 
+  /** Called by the game engine when the power‑pellet timer expires */
+  onPowerPelletEnd() {
+    this.resetEatStreak();
+  }
+
   /** Simple movement step towards a target (used for scatter and eye‑return) */
   moveTowards(target: { x: number; y: number }) {
     const dx = target.x - this.position.x;

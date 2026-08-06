@@ -59,11 +59,17 @@ export const GameCanvas: React.FC = () => {
     resizeCanvas();
     // Listen for window resize events with debounce (100ms)
     const debouncedResize = debounce(resizeCanvas, 100);
+    // Store reference for cleanup
+    const debouncedResizeRef = { current: debouncedResize };
     window.addEventListener('resize', debouncedResize);
     // Start animation loop and store its ID
     frameIdRef.current = requestAnimationFrame(animationLoop);
     return () => {
       window.removeEventListener('resize', debouncedResize);
+      // Cancel any pending debounce timer
+      if (debouncedResizeRef.current && typeof debouncedResizeRef.current.cancel === 'function') {
+        debouncedResizeRef.current.cancel();
+      }
       cancelAnimationFrame(frameIdRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

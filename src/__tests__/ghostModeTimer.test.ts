@@ -11,8 +11,8 @@ describe('GhostModeTimer constructor validation', () => {
 
   it('allows Infinity for the final phase', () => {
     const phases: ModePhase[] = [
-      { mode: 'scatter', durationMs: 7000 },
-      { mode: 'chase', durationMs: Infinity },
+      { mode: GhostMode.Scatter, durationMs: 7000 },
+      { mode: GhostMode.Chase, durationMs: Infinity },
     ];
     expect(() => new GhostModeTimer(phases)).not.toThrow();
   });

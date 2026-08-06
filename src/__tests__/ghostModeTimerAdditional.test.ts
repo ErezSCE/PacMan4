@@ -3,8 +3,8 @@ import { GhostModeTimer, ModePhase } from '../game/ghost/GhostModeTimer';
 describe('GhostModeTimer additional validation', () => {
   it('throws when Infinity is used in a non-final phase', () => {
     const phases: ModePhase[] = [
-      { mode: 'scatter', durationMs: Infinity }, // invalid, not final
-      { mode: 'chase', durationMs: 20000 },
+      { mode: GhostMode.Scatter, durationMs: Infinity }, // invalid, not final
+      { mode: GhostMode.Chase, durationMs: 20000 },
     ];
     expect(() => new GhostModeTimer(phases)).toThrowError(/Infinity durationMs is only allowed for the final phase/);
   });

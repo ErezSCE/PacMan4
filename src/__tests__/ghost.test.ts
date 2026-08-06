@@ -6,16 +6,16 @@ import { Direction } from '../input/types';
 describe('GhostModeTimer', () => {
   it('should follow the configured phase sequence and stay on last phase', () => {
     const phases: ModePhase[] = [
-      { mode: 'scatter', durationMs: 7000 },
-      { mode: 'chase', durationMs: 20000 },
-      { mode: 'scatter', durationMs: 7000 },
-      { mode: 'chase', durationMs: Infinity },
+      { mode: GhostMode.Scatter, durationMs: 7000 },
+      { mode: GhostMode.Chase, durationMs: 20000 },
+      { mode: GhostMode.Scatter, durationMs: 7000 },
+      { mode: GhostMode.Chase, durationMs: Infinity },
     ];
     const timer = new GhostModeTimer(phases);
-    expect(timer.getCurrentMode()).toBe('scatter');
+    expect(timer.getCurrentMode()).toBe(GhostMode.Scatter);
     // advance 7 seconds -> switch to chase
     timer.update(7000);
-    expect(timer.getCurrentMode()).toBe('chase');
+    expect(timer.getCurrentMode()).toBe(GhostMode.Chase);
     // advance 20 seconds -> back to scatter
     timer.update(20000);
     expect(timer.getCurrentMode()).toBe('scatter');
@@ -66,9 +66,15 @@ describe('Ghost behavior', () => {
     ghost.onPowerPellet();
     ghost.eat(); // now in Eaten mode
     // Simulate ticks moving towards house
-    while (ghost.position.x !== housePos.x || ghost.position.y !== housePos.y) {
+    const maxIterations = 1000;
+    let iterations = 0;
+    while ((ghost.position.x !== housePos.x || ghost.position.y !== housePos.y) && iterations < maxIterations) {
       ghost.tick({ x: 0, y: 0 });
+      iterations++;
     }
+    expect(iterations).toBeLessThan(maxIterations);
+    // Ensure ghost reached house
+    expect(ghost.position).toEqual(housePos);
     expect(ghost.position).toEqual(housePos);
     expect(ghost.mode).toBe(GhostMode.Scatter);
     // streak should be reset, next eat gives base points again

@@ -8,7 +8,7 @@
  * milliseconds since the previous update call.
  */
 export type ModePhase = {
-  mode: 'scatter' | 'chase';
+  mode: GhostMode; // Only Scatter or Chase are valid for phases
   durationMs: number;
 };
 
