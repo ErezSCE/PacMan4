@@ -78,9 +78,8 @@ export const GameCanvas: React.FC = () => {
   }, [resizeCanvas]);
 
   return (
-    <div ref={containerRef} data-testid="game-canvas-container" style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+    <div ref={containerRef} data-testid="game-canvas-container" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
       <canvas ref={canvasRef} data-testid="game-canvas" />
-    </div>
       <FruitIndicator fruit={fruit} />
     </div>
   );

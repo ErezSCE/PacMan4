@@ -89,7 +89,7 @@ export class AudioManager {
 
   /** Stop the siren sound if playing */
   public stopSiren() {
-    const siren = this.sounds['siren'];
+    const siren = AudioManager.sounds['siren'];
     if (!siren || this.sirenId === undefined) return;
     siren.stop(this.sirenId);
     this.sirenId = undefined;

@@ -16,7 +16,7 @@ export interface GameState {
   // Current level number (1‑based)
   level: number;
   // Active fruit, if any
-  fruit: import('./Fruit').Fruit | null;
+  fruit: Fruit | null;
   // Ghost speed multiplier (1 = base speed)
   ghostSpeed: number;
   // Scared state duration in ms
@@ -110,11 +110,29 @@ export class Engine {
   /** Determine if the state has changed since last frame */
   private hasStateChanged(): boolean {
     if (!this.prevState) return true;
-    return this.prevState.direction !== this.state.direction;
+    const s = this.state;
+    const p = this.prevState;
+    if (s.direction !== p.direction) return true;
+    if (s.score !== p.score) return true;
+    if (s.level !== p.level) return true;
+    if (s.remainingDots !== p.remainingDots) return true;
+    if (s.ghostSpeed !== p.ghostSpeed) return true;
+    if (s.scaredDuration !== p.scaredDuration) return true;
+    const sFruitActive = s.fruit?.active ?? false;
+    const pFruitActive = p.fruit?.active ?? false;
+    if (sFruitActive !== pFruitActive) return true;
+    const sFruitName = s.fruit?.type.name ?? '';
+    const pFruitName = p.fruit?.type.name ?? '';
+    if (sFruitName !== pFruitName) return true;
+    return false;
   }
 
   /** Called each animation frame. Returns true if a redraw is needed. */
   tick(): boolean {
+    // Clear inactive fruit to allow future spawns
+    if (this.state.fruit && !this.state.fruit.active) {
+      this.state.fruit = null;
+    }
     const changed = this.hasStateChanged();
     this.prevState = { ...this.state };
     return changed;
