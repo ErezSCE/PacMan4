@@ -92,7 +92,7 @@ export class GameEngine {
   /** Start the animation loop */
   public start() {
     if (this.animationFrameId !== null) return; // already running
-    this.lastTimestamp = performance.now();
+    this.lastTimestamp = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
     const loop = (timestamp: number) => {
       const delta = timestamp - this.lastTimestamp;
       this.lastTimestamp = timestamp;
@@ -113,7 +113,16 @@ export class GameEngine {
   /** Update game state – called each frame */
   private timeAccumulator: number = 0;
 
-  public update(_deltaMs: number) {
+  public update(deltaMs: number) {
+    // Accumulate time and move at a fixed step interval (e.g., 100ms per move)
+    this.timeAccumulator += deltaMs;
+    const stepInterval = 100; // ms per movement step
+    if (this.timeAccumulator < stepInterval) {
+      return; // not enough time elapsed for a move
+    }
+    // Consume the interval
+    this.timeAccumulator -= stepInterval;
+
     if (!this.direction) return; // no movement requested
     const { x, y } = this.state.pacMan;
     const [dx, dy] = this.directionToDelta(this.direction);

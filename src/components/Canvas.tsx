@@ -18,9 +18,15 @@ export const Canvas: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas size to fill parent
-    canvas.width = canvas.clientWidth || 400;
-    canvas.height = canvas.clientHeight || 400;
+    // Set canvas size to fill parent; fallback to 400 if size is zero
+    const setCanvasSize = () => {
+      canvas.width = canvas.clientWidth > 0 ? canvas.clientWidth : 400;
+      canvas.height = canvas.clientHeight > 0 ? canvas.clientHeight : 400;
+    };
+    setCanvasSize();
+    // Update size on window resize
+    const handleResize = () => setCanvasSize();
+    window.addEventListener('resize', handleResize);
 
     const maze = new Maze();
     const pacManStart: Position = { x: 1, y: 1 };
@@ -43,6 +49,7 @@ export const Canvas: React.FC = () => {
     // Cleanup on unmount
     return () => {
       window.cancelAnimationFrame(animationRef.current);
+      window.removeEventListener('resize', handleResize);
     };
     // Empty dependency array – run once
   }, []);

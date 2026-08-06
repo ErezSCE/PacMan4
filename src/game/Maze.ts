@@ -57,4 +57,8 @@ export class Maze {
   public getLayout(): number[][] {
     return this.layout.map(row => row.slice());
   }
-}
+
+  /** Get cell size in pixels */
+  public getCellSize(): number {
+    return this.cellSize;
+  }

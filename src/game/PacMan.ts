@@ -20,6 +20,8 @@ export class PacMan {
     this.maze = maze;
     this.x = startPos.x;
     this.y = startPos.y;
+    // Use maze cell size for drawing
+    this.cellSize = maze.getCellSize();
     // Starting position could be set based on maze, but keep simple.
   }
 
@@ -29,8 +31,10 @@ export class PacMan {
   }
 
   /** Draw Pac-Man as a yellow circle */
+  private cellSize: number;
+
   public draw(ctx: CanvasRenderingContext2D) {
-    const cellSize = 40; // must match Maze cellSize
+    const cellSize = this.cellSize; // use Maze cellSize
     const radius = cellSize / 2 - 4;
     ctx.fillStyle = '#ff0';
     ctx.beginPath();
