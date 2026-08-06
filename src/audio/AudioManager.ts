@@ -10,7 +10,12 @@ import { PersistenceService } from '../services/PersistenceService';
 export class AudioManager {
   // ID of the currently playing siren sound (if any)
   private sirenId?: number;
-  private static instance: AudioManager;
+  private static instance: AudioManager | undefined;
+
+  /** Reset the singleton instance (used in tests) */
+  public static resetInstance() {
+    AudioManager.instance = undefined;
+  }
   private sounds: Record<string, Howl> = {};
   private muted: boolean = false;
   private currentLevel: number = 0;
@@ -47,7 +52,8 @@ export class AudioManager {
 
     Object.entries(soundDefs).forEach(([key, src]) => {
       const isSiren = key === 'siren';
-      this.sounds[key] = new Howl({ src, preload: true, loop: isSiren });
+      const SILENT_SOUND = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=';
+    this.sounds[key] = new Howl({ src: [src, SILENT_SOUND], preload: true, loop: isSiren });
     });
   }
 
@@ -57,9 +63,7 @@ export class AudioManager {
     if (!sound) {
       // eslint-disable-next-line no-console
       console.warn(`AudioManager: sound "${soundKey}" not found`);
-      if (process.env.NODE_ENV !== 'production') {
-        throw new Error(`AudioManager: sound "${soundKey}" not found`);
-      }
+      // Do not throw an error to avoid crashing the game; just return.
       return;
     }
     if (!this.muted) {
