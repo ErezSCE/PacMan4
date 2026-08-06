@@ -133,12 +133,11 @@ export class Ghost {
     // Choose axis with larger distance to move one step (pixel) per call
     if (Math.abs(dx) > Math.abs(dy)) {
       this.position.x += Math.sign(dx) * this.getSpeed();
-      // Snap to integer grid to avoid floating point drift
-      this.position.x = Math.round(this.position.x);
+      // Do not round here; keep precise float position for smoother movement
       this.direction = dx > 0 ? Direction.Right : Direction.Left;
     } else if (dy !== 0) {
       this.position.y += Math.sign(dy) * this.getSpeed();
-      this.position.y = Math.round(this.position.y);
+      // Do not round here; keep precise float position for smoother movement
       this.direction = dy > 0 ? Direction.Down : Direction.Up;
     }
     // If reached target (within speed tolerance) snap to target

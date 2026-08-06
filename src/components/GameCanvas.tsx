@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useCallback } from 'react';
+import { debounce } from '../input/debounce';
 import { Engine } from '../game/Engine';
 
 /**
@@ -58,12 +59,13 @@ export const GameCanvas: React.FC = () => {
     engineRef.current.loadAssets().catch(console.error);
     // Initial sizing
     resizeCanvas();
-    // Listen for window resize events
-    window.addEventListener('resize', resizeCanvas);
+    // Listen for window resize events with debounce (100ms)
+    const debouncedResize = debounce(resizeCanvas, 100);
+    window.addEventListener('resize', debouncedResize);
     // Start animation loop and store its ID
     frameIdRef.current = requestAnimationFrame(animationLoop);
     return () => {
-      window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener('resize', debouncedResize);
       cancelAnimationFrame(frameIdRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

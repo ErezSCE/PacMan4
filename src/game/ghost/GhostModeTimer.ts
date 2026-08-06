@@ -26,6 +26,15 @@ export class GhostModeTimer {
    *    {mode: 'scatter', durationMs: 5000}, {mode: 'chase', durationMs: Infinity}]
    */
   constructor(phases: ModePhase[]) {
+    // Validate that each phase has a positive duration (or Infinity for the final phase)
+    phases.forEach((phase, index) => {
+      if (typeof phase.durationMs !== 'number' || (!Number.isFinite(phase.durationMs) && phase.durationMs !== Infinity)) {
+        throw new Error(`Phase ${index} has invalid durationMs: must be a number or Infinity`);
+      }
+      if (phase.durationMs <= 0 && phase.durationMs !== Infinity) {
+        throw new Error(`Phase ${index} durationMs must be positive or Infinity`);
+      }
+    });
     if (phases.length === 0) {
       throw new Error('GhostModeTimer requires at least one phase');
     }
