@@ -1,5 +1,6 @@
 // src/audio/AudioManager.ts
 import { Howl, Howler } from 'howler';
+import { PersistenceService } from '../services/PersistenceService';
 
 /**
  * AudioManager is a thin wrapper around Howler.js providing a simple API for the game.
@@ -18,9 +19,6 @@ export class AudioManager {
     // Private to enforce singleton pattern
     this.loadSounds();
     // Initialize mute state from persisted setting if available
-    // Lazy import to avoid circular dependency issues
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { PersistenceService } = require('../services/PersistenceService');
     const persisted = PersistenceService.getMute();
     this.setMute(persisted);
   }
@@ -59,6 +57,9 @@ export class AudioManager {
     if (!sound) {
       // eslint-disable-next-line no-console
       console.warn(`AudioManager: sound "${soundKey}" not found`);
+      if (process.env.NODE_ENV !== 'production') {
+        throw new Error(`AudioManager: sound "${soundKey}" not found`);
+      }
       return;
     }
     if (!this.muted) {
@@ -71,6 +72,11 @@ export class AudioManager {
     const siren = this.sounds['siren'];
     if (!siren) return;
     if (this.muted) return;
+    // Guard against duplicate playback
+    if (this.sirenId !== undefined) {
+      // Siren already playing; do not start another instance
+      return;
+    }
     // Play and store the sound id for later rate adjustments
     this.sirenId = siren.play();
     // Set initial rate based on current level
@@ -104,9 +110,12 @@ export class AudioManager {
     this.muted = mute;
     Howler.mute(mute);
     // Persist the setting
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { PersistenceService } = require('../services/PersistenceService');
-    PersistenceService.setMute(mute);
+    try {
+      PersistenceService.setMute(mute);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('AudioManager: failed to persist mute state', error);
+    }
   }
 
   /** Toggle mute state */

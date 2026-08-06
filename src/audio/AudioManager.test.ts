@@ -1,18 +1,5 @@
-import { Howl, Howler } from 'howler';
-
-// Mock Howler.js
-jest.mock('howler', () => {
-  const mockPlay = jest.fn(() => 1); // return sound id 1
-  const mockStop = jest.fn();
-  const mockRate = jest.fn((rate: number, id?: number) => {});
-  const MockHowl = jest.fn().mockImplementation(() => ({
-    play: mockPlay,
-    stop: mockStop,
-    rate: mockRate,
-  }));
-  const MockHowler = { mute: jest.fn() };
-  return { Howl: MockHowl, Howler: MockHowler };
-});
+let Howl: any;
+let Howler: any;
 
 describe('AudioManager', () => {
   let audioManager: any;
@@ -21,19 +8,28 @@ describe('AudioManager', () => {
     // Reset modules and localStorage before each test
     jest.resetModules();
     localStorage.clear();
+    // Mock Howler.js for this test scope
+    jest.doMock('howler', () => {
+      const mockPlay = jest.fn(() => 1); // return sound id 1
+      const mockStop = jest.fn();
+      const mockRate = jest.fn((rate: number, id?: number) => {});
+      const MockHowl = jest.fn().mockImplementation(() => ({
+        play: mockPlay,
+        stop: mockStop,
+        rate: mockRate,
+      }));
+      const MockHowler = { mute: jest.fn() };
+      return { Howl: MockHowl, Howler: MockHowler };
+    });
     // Re-import after mocking
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const howlerMock = require('howler');
+    Howl = howlerMock.Howl;
+    Howl.mockClear && Howl.mockClear();
+    Howler = howlerMock.Howler;
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const mod = require('./AudioManager');
     audioManager = mod.audioManager;
-    // Re-require Howler mock to sync with new module instance
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const howlerMock = require('howler');
-    // Update Howl and Howler references for this test scope
-    // @ts-ignore
-    Howl = howlerMock.Howl;
-    // @ts-ignore
-    Howler = howlerMock.Howler;
-
   });
 
   test('initial mute state is read from PersistenceService/localStorage', () => {
