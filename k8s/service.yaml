@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pacman-frontend-service
+  labels:
+    app: pacman-frontend
+spec:
+  selector:
+    app: pacman-frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
