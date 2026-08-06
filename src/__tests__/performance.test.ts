@@ -28,7 +28,8 @@ describe('Performance benchmark (60fps)', () => {
   // Shut down the preview server after tests
   afterAll(() => {
     if (serverProcess && !serverProcess.killed) {
-      process.kill(-serverProcess.pid);
+      // Gracefully terminate the preview server process
+      serverProcess.kill('SIGTERM');
     }
   });
 

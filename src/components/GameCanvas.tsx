@@ -35,7 +35,7 @@ export const GameCanvas: React.FC = () => {
   };
 
   // Main animation loop – only redraw when engine reports a change
-  const animate = () => {
+  const animationLoop = () => {
     const needsRedraw = engineRef.current.tick();
     if (needsRedraw && canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
@@ -46,8 +46,12 @@ export const GameCanvas: React.FC = () => {
         ctx.fillRect(100, 100, 50, 50);
       }
     }
-    requestAnimationFrame(animate);
+    // Schedule next frame and store its id
+    frameIdRef.current = requestAnimationFrame(animationLoop);
   };
+
+  // Ref to store the latest animation frame ID for cleanup
+  const frameIdRef = useRef<number>(0);
 
   useEffect(() => {
     // Load assets lazily before first frame
@@ -56,11 +60,11 @@ export const GameCanvas: React.FC = () => {
     resizeCanvas();
     // Listen for window resize events
     window.addEventListener('resize', resizeCanvas);
-    // Start animation loop
-    const frameId = requestAnimationFrame(animate);
+    // Start animation loop and store its ID
+    frameIdRef.current = requestAnimationFrame(animationLoop);
     return () => {
       window.removeEventListener('resize', resizeCanvas);
-      cancelAnimationFrame(frameId);
+      cancelAnimationFrame(frameIdRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
