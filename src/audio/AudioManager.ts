@@ -24,7 +24,13 @@ export class AudioManager {
     // Private to enforce singleton pattern
     this.loadSounds();
     // Initialize mute state from persisted setting if available
-    const persisted = PersistenceService.getMute();
+    let persisted = false;
+    try {
+      persisted = PersistenceService.getMute();
+    } catch (e) {
+      // If PersistenceService is not ready, default to unmuted.
+      persisted = false;
+    }
     this.setMute(persisted);
   }
 
@@ -63,9 +69,12 @@ export class AudioManager {
   public play(soundKey: string) {
     const sound = AudioManager.sounds[soundKey];
     if (!sound) {
+      // In development, throw to surface bugs; otherwise log a warning.
+      if (process.env.NODE_ENV !== 'production') {
+        throw new Error(`AudioManager: sound "${soundKey}" not found`);
+      }
       // eslint-disable-next-line no-console
       console.warn(`AudioManager: sound "${soundKey}" not found`);
-      // Do not throw an error to avoid crashing the game; just return.
       return;
     }
     if (!this.muted) {

@@ -4,11 +4,10 @@
  * Handles state updates, diffing, and lazy asset loading.
  */
 import { Direction } from "../input/types";
-import { audioManager } from "../audio/AudioManager";
+
 import { Fruit, FruitType } from "./Fruit";
 import type { LevelData } from "../assets/levels/level1";
 import type { SpriteSheet } from "../assets/sprites/spriteSheet";
-
 export interface FruitInfo {
   active: boolean;
   spawnLevel: number;
@@ -47,25 +46,16 @@ export class Engine {
   };
   private prevState: GameState | null = null;
   private assetsLoaded = false;
-  // Removed levelAdvanced flag; level advancement is handled by state reset
-
-private levelData: LevelData | null = null;
-  private spriteSheet: SpriteSheet | null = null;
+  private levelAdvanced: boolean = false;
 
   /** Load level data and sprite sheet lazily via dynamic import */
   async loadAssets(): Promise<void> {
     if (this.assetsLoaded) return;
     try {
-      // Dynamically import assets, handling both default and named exports for robustness
-      const [levelModule, spriteModule]: [unknown, unknown] = await Promise.all([
-        import("../assets/levels/level1"),
-        import("../assets/sprites/spriteSheet"),
-      ]);
-      // Extract default exports with proper typing, avoiding any
-      const level = (levelModule as { default: LevelData }).default;
-      const sprite = (spriteModule as { default: SpriteSheet }).default;
-      this.levelData = level;
-      this.spriteSheet = sprite;
+      // Dynamically import assets with explicit types for safety
+      const levelModule = (await import('../assets/levels/level1')) as { default: LevelData };
+      const spriteModule = (await import('../assets/sprites/spriteSheet')) as { default: SpriteSheet };
+      // Assets are loaded; we don't need to store them as they're not used directly here.
       this.assetsLoaded = true;
     } catch (err) {
       // Re‑throw with a descriptive message to aid debugging
