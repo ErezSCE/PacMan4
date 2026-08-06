@@ -13,29 +13,45 @@ export class InputManager {
   private callback: DirectionCallback;
   private debouncedSetDirection: DirectionCallback;
   private lastTouchPos: { x: number; y: number } | null = null;
+  private isRunning: boolean = false; // tracks whether listeners are attached
 
   constructor(callback: DirectionCallback, debounceMs: number = 16) {
     this.callback = callback;
-    this.debouncedSetDirection = debounce(this.setDirection.bind(this), debounceMs);
+    // Guard against negative debounce values – coerce to 0
+    const safeDebounce = debounceMs < 0 ? 0 : debounceMs;
+    this.debouncedSetDirection = debounce(this.setDirection.bind(this), safeDebounce);
   }
 
-  /** Start listening to input events */
+  /** Start listening to input events – idempotent */
   public start() {
+    if (this.isRunning) {
+      return;
+    }
     window.addEventListener('keydown', this.handleKeyDown);
     window.addEventListener('pointerdown', this.handlePointerDown);
     window.addEventListener('pointerup', this.handlePointerUp);
+    window.addEventListener('pointercancel', this.handlePointerCancel);
+    window.addEventListener('pointerleave', this.handlePointerLeave);
+    this.isRunning = true;
   }
 
   /** Stop listening to input events */
   public stop() {
+    if (!this.isRunning) {
+      return;
+    }
     window.removeEventListener('keydown', this.handleKeyDown);
     window.removeEventListener('pointerdown', this.handlePointerDown);
     window.removeEventListener('pointerup', this.handlePointerUp);
+    window.removeEventListener('pointercancel', this.handlePointerCancel);
+    window.removeEventListener('pointerleave', this.handlePointerLeave);
+    this.isRunning = false;
   }
 
   /** Called by on‑screen buttons */
   public handleButton(direction: Direction) {
-    this.debouncedSetDirection(direction);
+    // On-screen button presses are discrete; invoke callback immediately
+    this.setDirection(direction);
   }
 
   private setDirection(direction: Direction) {
@@ -93,6 +109,16 @@ export class InputManager {
     if (direction !== Direction.None) {
       this.debouncedSetDirection(direction);
     }
+    this.lastTouchPos = null;
+  };
+
+  private handlePointerCancel = (e: PointerEvent) => {
+    // Clear any stored touch position to avoid stale data
+    this.lastTouchPos = null;
+  };
+
+  private handlePointerLeave = (e: PointerEvent) => {
+    // Treat leaving the viewport as a cancellation
     this.lastTouchPos = null;
   };
 }

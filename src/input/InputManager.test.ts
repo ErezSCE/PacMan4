@@ -19,6 +19,25 @@ describe('InputManager', () => {
     manager.start();
   });
 
+  test('stop removes listeners so callbacks are not invoked after stop', () => {
+    manager.stop();
+    const event = new KeyboardEvent('keydown', { key: 'ArrowUp' });
+    window.dispatchEvent(event);
+    jest.runAllTimers();
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  test('start is idempotent and does not register duplicate listeners', () => {
+    // Call start again
+    manager.start();
+    const event = new KeyboardEvent('keydown', { key: 'ArrowUp' });
+    window.dispatchEvent(event);
+    jest.runAllTimers();
+    expect(callback).toHaveBeenCalledTimes(1);
+    expect(callback).toHaveBeenCalledWith(Direction.Up);
+  });
+
+
   afterEach(() => {
     manager.stop();
     jest.clearAllTimers();
@@ -50,6 +69,43 @@ describe('InputManager', () => {
   });
 
   test('detects swipe right gesture', () => {
+    // Swipe right: start left, end right
+    const down = new PointerEvent('pointerdown', { clientX: 0, clientY: 0 });
+    const up = new PointerEvent('pointerup', { clientX: 100, clientY: 0 });
+    window.dispatchEvent(down);
+    window.dispatchEvent(up);
+    jest.runAllTimers();
+    expect(callback).toHaveBeenCalledWith(Direction.Right);
+  });
+
+  test('detects swipe left gesture', () => {
+    const down = new PointerEvent('pointerdown', { clientX: 100, clientY: 0 });
+    const up = new PointerEvent('pointerup', { clientX: 0, clientY: 0 });
+    window.dispatchEvent(down);
+    window.dispatchEvent(up);
+    jest.runAllTimers();
+    expect(callback).toHaveBeenCalledWith(Direction.Left);
+  });
+
+  test('detects swipe up gesture', () => {
+    const down = new PointerEvent('pointerdown', { clientX: 0, clientY: 100 });
+    const up = new PointerEvent('pointerup', { clientX: 0, clientY: 0 });
+    window.dispatchEvent(down);
+    window.dispatchEvent(up);
+    jest.runAllTimers();
+    expect(callback).toHaveBeenCalledWith(Direction.Up);
+  });
+
+  test('detects swipe down gesture', () => {
+    const down = new PointerEvent('pointerdown', { clientX: 0, clientY: 0 });
+    const up = new PointerEvent('pointerup', { clientX: 0, clientY: 100 });
+    window.dispatchEvent(down);
+    window.dispatchEvent(up);
+    jest.runAllTimers();
+    expect(callback).toHaveBeenCalledWith(Direction.Down);
+  });
+
+  test('debounce prevents rapid duplicate inputs', () => {
     // Use MouseEvent as a fallback for PointerEvent in jsdom
     const down = new PointerEvent('pointerdown', { clientX: 0, clientY: 0 });
     const up = new PointerEvent('pointerup', { clientX: 100, clientY: 0 });

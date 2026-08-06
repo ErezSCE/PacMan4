@@ -7,5 +7,5 @@ module.exports = {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
-  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/cypress/'],
 };

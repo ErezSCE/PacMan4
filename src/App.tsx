@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { InputManager } from './input/InputManager';
 import { DirectionalPad } from './components/DirectionalPad';
 import { Direction } from './input/types';
 
 export const App: React.FC = () => {
   const [direction, setDirection] = useState<Direction>(Direction.None);
-  const [inputManager, setInputManager] = useState<InputManager | null>(null);
+  const inputManagerRef = useRef<InputManager | null>(null);
 
   useEffect(() => {
     const manager = new InputManager(setDirection);
     manager.start();
-    setInputManager(manager);
+    inputManagerRef.current = manager;
     return () => {
       manager.stop();
     };
   }, []);
 
   const handleButton = (dir: Direction) => {
-    inputManager?.handleButton(dir);
+    inputManagerRef.current?.handleButton(dir);
   };
 
   return (
