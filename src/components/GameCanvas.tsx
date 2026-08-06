@@ -14,7 +14,9 @@ export const GameCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<Engine>(new Engine());
   // Expose engine for testing purposes (Cypress)
-  (window as any).engine = engineRef.current;
+  if (process.env.NODE_ENV === 'test') {
+    (window as any).engine = engineRef.current;
+  }
   const [fruit, setFruit] = useState<Fruit | null>(null);
 
   const BASE_WIDTH = 800;

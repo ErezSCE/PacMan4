@@ -30,6 +30,9 @@ describe('Engine fruit and level scaling', () => {
     // Fast-forward timeout (default 10s)
     jest.advanceTimersByTime(10000);
     expect(fruit.active).toBe(false);
+    // After timeout, engine should clear inactive fruit from state via tick
+    engine.tick();
+    expect(engine.getState().fruit).toBeNull();
   });
 
   test('collecting fruit adds points and clears fruit', () => {

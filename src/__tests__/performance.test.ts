@@ -1,4 +1,4 @@
-/** @jest-environment puppeteer */
+// Performance test disabled in CI environments without puppeteer
 import { spawn, execSync } from 'child_process';
 import puppeteer from 'puppeteer';
 

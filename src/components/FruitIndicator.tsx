@@ -1,5 +1,5 @@
 import React from 'react';
-import { Fruit } from '../game/Fruit';
+import type { Fruit } from '../game/Fruit';
 
 interface FruitIndicatorProps {
   /** Currently active fruit, or null if none */

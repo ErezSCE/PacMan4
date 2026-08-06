@@ -44,10 +44,14 @@ export class Engine {
   /** Load level data and sprite sheet lazily via dynamic import */
   async loadAssets(): Promise<void> {
     if (this.assetsLoaded) return;
-    const [{ default: level }, { default: sprite }] = await Promise.all([
+    // Dynamically import assets, handling both default and named exports for robustness
+    const [levelModule, spriteModule] = await Promise.all([
       import("../assets/levels/level1"),
       import("../assets/sprites/spriteSheet"),
     ]);
+    // Prefer default export, fall back to named export matching file name if present
+    const level = (levelModule as any).default ?? (levelModule as any).level ?? levelModule;
+    const sprite = (spriteModule as any).default ?? (spriteModule as any).spriteSheet ?? spriteModule;
     this.levelData = level;
     this.spriteSheet = sprite;
     this.assetsLoaded = true;
@@ -90,6 +94,10 @@ export class Engine {
 
   /** Advance to the next level and apply scaling */
   private advanceLevel() {
+    // If a fruit is still active, collect it to clear its timeout and remove it from state
+    if (this.state.fruit) {
+      this.state.fruit.collect();
+    }
     this.state.level++;
     // Reset dot counters for new level (simplified same total)
     this.state.remainingDots = 240;

@@ -1,3 +1,4 @@
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from './App';
 import './index.css';
@@ -14,7 +15,7 @@ root.render(
 );
 
 // Register Service Worker for PWA offline support
-if ('serviceWorker' in navigator) {
+if (navigator.serviceWorker && typeof navigator.serviceWorker.register === 'function') {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/service-worker.js')
