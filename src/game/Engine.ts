@@ -56,7 +56,7 @@ private levelData: LevelData | null = null;
     if (this.assetsLoaded) return;
     try {
       // Dynamically import assets, handling both default and named exports for robustness
-      const [levelModule, spriteModule] = await Promise.all([
+      const [levelModule, spriteModule]: [unknown, unknown] = await Promise.all([
         import("../assets/levels/level1"),
         import("../assets/sprites/spriteSheet"),
       ]);
