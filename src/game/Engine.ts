@@ -6,7 +6,30 @@
 import { Direction } from "../input/types";
 import { Fruit } from "./Fruit";
 
+export type FruitState = Readonly<Fruit>;
+
 export interface GameState {
+  direction: Direction;
+  // Add more properties as needed (e.g., player position, score)
+  // Track remaining dots in the current level
+  remainingDots: number;
+  // Number of dots eaten in current level
+  dotsEaten: number;
+  // Current level number (1‑based)
+  level: number;
+  // Active fruit, if any
+  fruit: FruitState | null;
+  // Ghost speed multiplier (1 = base speed)
+  ghostSpeed: number;
+  // Scared state duration in ms
+  scaredDuration: number;
+  // Player score
+  score: number;
+}
+
+  // ... other fields ...
+  // ... other fields ...
+
   direction: Direction;
   // Add more properties as needed (e.g., player position, score)
   // Track remaining dots in the current level
@@ -38,7 +61,7 @@ export class Engine {
   };
   private prevState: GameState | null = null;
   private assetsLoaded = false;
-  private levelAdvanced = false; // tracks if level advancement has occurred in current level
+  // Removed levelAdvanced flag as it was unused
   private levelData: any = null;
   private spriteSheet: any = null;
 
