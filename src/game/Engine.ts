@@ -38,24 +38,29 @@ export class Engine {
   };
   private prevState: GameState | null = null;
   private assetsLoaded = false;
-  private levelAdvanced = false;
+  private levelAdvanced = false; // tracks if level advancement has occurred in current level
   private levelData: any = null;
   private spriteSheet: any = null;
 
   /** Load level data and sprite sheet lazily via dynamic import */
   async loadAssets(): Promise<void> {
     if (this.assetsLoaded) return;
-    // Dynamically import assets, handling both default and named exports for robustness
-    const [levelModule, spriteModule] = await Promise.all([
-      import("../assets/levels/level1"),
-      import("../assets/sprites/spriteSheet"),
-    ]);
-    // Prefer default export, fall back to named export matching file name if present
-    const level = (levelModule as any).default ?? (levelModule as any).level ?? levelModule;
-    const sprite = (spriteModule as any).default ?? (spriteModule as any).spriteSheet ?? spriteModule;
-    this.levelData = level;
-    this.spriteSheet = sprite;
-    this.assetsLoaded = true;
+    try {
+      // Dynamically import assets, handling both default and named exports for robustness
+      const [levelModule, spriteModule] = await Promise.all([
+        import("../assets/levels/level1"),
+        import("../assets/sprites/spriteSheet"),
+      ]);
+      // Prefer default export, fall back to named export matching file name if present
+      const level = (levelModule as any).default ?? (levelModule as any).level ?? levelModule;
+      const sprite = (spriteModule as any).default ?? (spriteModule as any).spriteSheet ?? spriteModule;
+      this.levelData = level;
+      this.spriteSheet = sprite;
+      this.assetsLoaded = true;
+    } catch (err) {
+      // Re‑throw with a descriptive message to aid debugging
+      throw new Error(`Failed to load assets: ${(err as Error).message}`);
+    }
   }
 
   /** Update the engine state */
@@ -115,13 +120,29 @@ export class Engine {
     const baseScared = 8000;
     const decrement = (this.state.level - 1) * 500; // decrease 0.5s per level
     this.state.scaredDuration = Math.max(2000, baseScared - decrement);
-    // Mark that level has been advanced to prevent duplicate advancement on extra eatDot calls
-    this.levelAdvanced = true;
+    // Reset levelAdvanced flag for the new level
+    this.levelAdvanced = false;
   }
 
   /** Get a copy of the current state */
+  /**
+   * Return a deep copy of the current state to prevent external mutation.
+   * The fruit object is cloned without its methods to ensure immutability.
+   */
   getState(): GameState {
-    return { ...this.state };
+    const fruitCopy = this.state.fruit
+      ? {
+          // Clone primitive properties
+          active: this.state.fruit.active,
+          spawnLevel: this.state.fruit.spawnLevel,
+          // Clone type object
+          type: { ...this.state.fruit.type },
+        } as any // cast to any to satisfy Fruit type without methods
+      : null;
+    return {
+      ...this.state,
+      fruit: fruitCopy,
+    };
   }
 
   /** Determine if the state has changed since last frame */
@@ -149,6 +170,8 @@ export class Engine {
     // Clear inactive fruit to allow future spawns
     if (this.state.fruit && !this.state.fruit.active) {
       this.state.fruit = null;
+      // Reset levelAdvanced flag in case level ended while fruit was present
+      this.levelAdvanced = false;
     }
     const changed = this.hasStateChanged();
     this.prevState = { ...this.state };
