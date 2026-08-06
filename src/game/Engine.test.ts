@@ -2,6 +2,13 @@ import { Engine } from './Engine';
 import { Direction } from '../input/types';
 
 describe('Engine', () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
   let engine: Engine;
 
   beforeEach(() => {

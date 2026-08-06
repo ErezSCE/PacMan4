@@ -18,7 +18,7 @@ interface StartScreenProps {
  */
 export const StartScreen: React.FC<StartScreenProps> = ({ highScores, onStart }) => {
   return (
-    <div data-testid="start-screen" className="start-screen" style={{ textAlign: 'center' }}>
+    <div data-testid="start-screen" className="start-screen">
       <h1>Pac‑Man</h1>
       <h2>High Scores</h2>
       <ol data-testid="high-score-list">

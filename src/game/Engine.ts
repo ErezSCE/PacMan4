@@ -5,6 +5,8 @@
  */
 import { Direction } from "../input/types";
 import { Fruit, FruitType } from "./Fruit";
+import type { LevelData } from "../assets/levels/level1";
+import type { SpriteSheet } from "../assets/sprites/spriteSheet";
 
 export interface FruitInfo {
   active: boolean;
@@ -45,8 +47,8 @@ export class Engine {
   private prevState: GameState | null = null;
   private assetsLoaded = false;
   private levelAdvanced: boolean = false;
-  private levelData: any = null;
-  private spriteSheet: any = null;
+  private levelData: import('../assets/levels/level1').LevelData | null = null;
+  private spriteSheet: import('../assets/sprites/spriteSheet').SpriteSheet | null = null;
 
   /** Load level data and sprite sheet lazily via dynamic import */
   async loadAssets(): Promise<void> {

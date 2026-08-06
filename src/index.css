@@ -7,6 +7,16 @@ button:focus-visible, [role="button"]:focus-visible {
 }
 body { margin: 0; font-family: sans-serif; }
 
+/* Component specific styles */
+.countdown {
+  font-size: 4rem;
+  text-align: center;
+}
+
+.start-screen {
+  text-align: center;
+}
+
 .fruit-indicator {
   margin-top: 8px;
 }

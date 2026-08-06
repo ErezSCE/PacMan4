@@ -28,7 +28,7 @@ export const Countdown: React.FC<CountdownProps> = ({ onComplete }) => {
   const display = step > 0 ? step.toString() : step === 0 ? 'GO' : null;
 
   return (
-    <div data-testid="countdown" className="countdown" style={{ fontSize: '4rem', textAlign: 'center' }}>
+    <div data-testid="countdown" className="countdown">
       {display}
     </div>
   );
