@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { InputManager } from './input/InputManager';
 import { DirectionalPad } from './components/DirectionalPad';
+import { ScoreBoard } from './components/ScoreBoard';
+import { Settings } from './components/Settings';
 import { Direction } from './input/types';
 
 export const App: React.FC = () => {
@@ -26,6 +28,8 @@ export const App: React.FC = () => {
       <p>Welcome to Pac-Man game!</p>
       <p data-testid="current-direction">Current Direction: {direction}</p>
       <DirectionalPad onDirection={handleButton} />
+      <ScoreBoard />
+      <Settings />
     </div>
   );
 };
