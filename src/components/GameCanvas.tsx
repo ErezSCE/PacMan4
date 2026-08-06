@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useCallback } from 'react';
+import { debounce } from '../input/debounce';
 import { Engine } from '../game/Engine';
 
 /**
@@ -20,19 +21,17 @@ export const GameCanvas: React.FC = () => {
   const resizeCanvas = useCallback(() => {
     if (!containerRef.current || !canvasRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    let width = rect.width;
-    let height = width / ASPECT;
-    if (height > rect.height) {
-      height = rect.height;
-      width = height * ASPECT;
-    }
+    // Compute scaling factor to fit both width and height while preserving aspect ratio
+    const scale = Math.min(rect.width / BASE_WIDTH, rect.height / BASE_HEIGHT);
+    const width = BASE_WIDTH * scale;
+    const height = BASE_HEIGHT * scale;
     // Set internal resolution (pixel size) – keep constant for rendering
     canvasRef.current.width = BASE_WIDTH;
     canvasRef.current.height = BASE_HEIGHT;
     // Apply CSS scaling
     canvasRef.current.style.width = `${width}px`;
     canvasRef.current.style.height = `${height}px`;
-  };
+  }, []);
 
   // Main animation loop – only redraw when engine reports a change
   const animationLoop = () => {
@@ -58,12 +57,19 @@ export const GameCanvas: React.FC = () => {
     engineRef.current.loadAssets().catch(console.error);
     // Initial sizing
     resizeCanvas();
-    // Listen for window resize events
-    window.addEventListener('resize', resizeCanvas);
+    // Listen for window resize events with debounce (100ms)
+    const debouncedResize = debounce(resizeCanvas, 100);
+    // Store reference for cleanup
+    const debouncedResizeRef = { current: debouncedResize };
+    window.addEventListener('resize', debouncedResize);
     // Start animation loop and store its ID
     frameIdRef.current = requestAnimationFrame(animationLoop);
     return () => {
-      window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener('resize', debouncedResize);
+      // Cancel any pending debounce timer
+      if (debouncedResizeRef.current && typeof debouncedResizeRef.current.cancel === 'function') {
+        debouncedResizeRef.current.cancel();
+      }
       cancelAnimationFrame(frameIdRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
