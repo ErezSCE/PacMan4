@@ -39,6 +39,7 @@
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.2.2",
-    "vite": "^5.0.0"
+    "vite": "^5.0.0",
+    "workbox-build": "^6.6.0"
   }
 }
