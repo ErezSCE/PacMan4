@@ -22,8 +22,7 @@ export const Countdown: React.FC<CountdownProps> = ({ onComplete }) => {
       setStep(prev => prev - 1);
     }, 1000);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [step, onComplete]);
 
   const display = step > 0 ? step.toString() : step === 0 ? 'GO' : null;
 

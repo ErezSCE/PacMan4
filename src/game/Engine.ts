@@ -60,8 +60,12 @@ export class Engine {
         import("../assets/sprites/spriteSheet"),
       ]);
       // Prefer default export, fall back to named export matching file name if present
-      const level = (levelModule as any).default ?? (levelModule as any).level ?? levelModule;
-      const sprite = (spriteModule as any).default ?? (spriteModule as any).spriteSheet ?? spriteModule;
+      const level = (levelModule as { default?: LevelData; level?: LevelData }).default ??
+        (levelModule as { level?: LevelData }).level ??
+        (levelModule as LevelData);
+      const sprite = (spriteModule as { default?: SpriteSheet; spriteSheet?: SpriteSheet }).default ??
+        (spriteModule as { spriteSheet?: SpriteSheet }).spriteSheet ??
+        (spriteModule as SpriteSheet);
       this.levelData = level;
       this.spriteSheet = sprite;
       this.assetsLoaded = true;

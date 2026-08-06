@@ -22,8 +22,8 @@ export const StartScreen: React.FC<StartScreenProps> = ({ highScores, onStart })
       <h1>Pac‑Man</h1>
       <h2>High Scores</h2>
       <ol data-testid="high-score-list">
-        {highScores.slice(0, 10).map((hs, idx) => (
-          <li key={idx}>
+        {highScores.slice(0, 10).map((hs) => (
+          <li key={`${hs.initials}-${hs.score}`}> 
             {hs.initials} — {hs.score}
           </li>
         ))}
