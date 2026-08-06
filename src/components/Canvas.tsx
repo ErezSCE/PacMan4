@@ -18,8 +18,8 @@ export const Canvas: React.FC = () => {
     if (!ctx) return;
 
     // Set canvas size to fill parent
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
+    canvas.width = canvas.clientWidth || 400;
+    canvas.height = canvas.clientHeight || 400;
 
     const maze = new Maze();
     const pacMan = new PacMan(maze);

@@ -28,10 +28,24 @@ export class GameEngine {
   private lastTimestamp: number = 0;
 
   constructor(initialMaze: number[][], pacManStart: Position) {
+    const startCell = initialMaze[pacManStart.y][pacManStart.x];
+    let startPos = { ...pacManStart };
+    if (startCell === 1) {
+      // Find first non-wall cell as fallback
+      outer: for (let y = 0; y < initialMaze.length; y++) {
+        for (let x = 0; x < initialMaze[y].length; x++) {
+          if (initialMaze[y][x] !== 1) {
+            startPos = { x, y };
+            break outer;
+          }
+        }
+      }
+    }
+
     const dots = this.countDots(initialMaze);
     this.state = {
       maze: initialMaze.map(row => row.slice()), // deep copy
-      pacMan: { ...pacManStart },
+      pacMan: { ...startPos },
       score: 0,
       level: 1,
       scaredMode: false,

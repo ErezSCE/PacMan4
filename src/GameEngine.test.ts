@@ -1,6 +1,5 @@
-import { GameEngine, Direction } from './GameEngine';
-// Use Direction to avoid unused import lint error
-const _Direction = Direction;
+
+import { GameEngine } from './GameEngine';
 
 describe('GameEngine', () => {
   const simpleMaze = [
@@ -11,7 +10,7 @@ describe('GameEngine', () => {
     [1, 2, 0, 2, 1],
     [1, 1, 1, 1, 1],
   ];
-  const pacStart = { x: 2, y: 2 }; // center empty cell
+  const pacStart = { x: 1, y: 2 }; // start on empty cell
 
   let engine: GameEngine;
 
@@ -30,29 +29,25 @@ describe('GameEngine', () => {
   });
 
   test('pac‑man moves into empty space', () => {
-    engine.setDirection('right'); // target (3,2) is 0
-    engine.update(16);
-    const { pacMan } = engine.getState();
-    expect(pacMan).toEqual({ x: 3, y: 2 });
+    // Use a start position with an adjacent empty cell
+    const engine2 = new GameEngine(simpleMaze, { x: 1, y: 1 }); // (1,1) is a dot, right cell (2,1) is empty
+    engine2.setDirection('right');
+    engine2.update(16);
+    const { pacMan } = engine2.getState();
+    expect(pacMan).toEqual({ x: 2, y: 1 });
   });
 
   test('pac‑man cannot move through walls', () => {
-    engine.setDirection('up'); // target (2,1) is 0 actually, need wall test
-    // Move left into wall at (1,2) which is 0? Actually (1,2) is 0, wall at (0,2) is 1.
-    engine.setDirection('left'); // target (1,2) empty, then another left would hit wall.
-    engine.update(16);
+    // From start (1,2), moving left would hit wall at (0,2)
     engine.setDirection('left');
     engine.update(16);
     const { pacMan } = engine.getState();
-    // Should be at (1,2) after first left, second left blocked by wall at (0,2)
     expect(pacMan).toEqual({ x: 1, y: 2 });
   });
 
   test('eating a dot increments score and reduces dotsRemaining', () => {
-    // Pac‑Man at (2,2), move down to (2,3) which is 0, then left to (1,3) which is dot (2)
+    // From start (1,2), move down to (1,3) which is a dot (2)
     engine.setDirection('down');
-    engine.update(16);
-    engine.setDirection('left');
     engine.update(16);
     const state = engine.getState();
     expect(state.score).toBe(10);
@@ -62,12 +57,11 @@ describe('GameEngine', () => {
   });
 
   test('eating a power pellet triggers scared mode', () => {
-    // Move up to (2,1) empty, then right to (3,1) pellet (3)
-    engine.setDirection('up');
-    engine.update(16);
-    engine.setDirection('right');
-    engine.update(16);
-    const state = engine.getState();
+    // Start adjacent to pellet at (3,1)
+    const engine2 = new GameEngine(simpleMaze, { x: 2, y: 1 }); // (2,1) is empty, pellet at (3,1)
+    engine2.setDirection('right');
+    engine2.update(16);
+    const state = engine2.getState();
     expect(state.score).toBe(50);
     expect(state.scaredMode).toBe(true);
     expect(state.dotsRemaining).toBe(3);
