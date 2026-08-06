@@ -1,5 +1,9 @@
 import { AudioManager } from './AudioManager';
 
+let mockPlay: jest.Mock<number, []>;
+let mockStop: jest.Mock<void, [number?]>;
+let mockRate: jest.Mock<void, [number, number?]>;
+
 type MockHowlInstance = {
   play: jest.Mock<number, []>;
   stop: jest.Mock<void, [number?]>;

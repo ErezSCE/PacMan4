@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { MuteToggle } from './components/MuteToggle';
 import { InputManager } from './input/InputManager';
 import { DirectionalPad } from './components/DirectionalPad';
+import { GameCanvas } from './components/GameCanvas';
 import { Direction } from './input/types';
 
 export const App: React.FC = () => {
@@ -28,6 +29,7 @@ export const App: React.FC = () => {
       <p data-testid="current-direction">Current Direction: {direction}</p>
       <DirectionalPad onDirection={handleButton} />
       <MuteToggle />
+      <GameCanvas />
     </div>
   );
 };
