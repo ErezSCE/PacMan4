@@ -5,6 +5,7 @@ describe('Engine', () => {
   let engine: Engine;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     engine = new Engine();
   });
 

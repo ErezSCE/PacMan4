@@ -1,4 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { GameProvider } from './context/GameContext';
+import { audioManager } from './audio/AudioManager';
 import { MuteToggle } from './components/MuteToggle';
 import { InputManager } from './input/InputManager';
 import { DirectionalPad } from './components/DirectionalPad';
