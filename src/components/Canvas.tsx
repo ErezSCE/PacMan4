@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Maze } from '../game/Maze';
 import { PacMan } from '../game/PacMan';
+import { Position } from '../GameEngine';
 
 /**
  * Canvas component that mounts an HTML5 canvas and runs a 60fps rendering loop.
@@ -22,7 +23,8 @@ export const Canvas: React.FC = () => {
     canvas.height = canvas.clientHeight || 400;
 
     const maze = new Maze();
-    const pacMan = new PacMan(maze);
+    const pacManStart: Position = { x: 1, y: 1 };
+    const pacMan = new PacMan(maze, pacManStart);
 
     const render = () => {
       // Clear canvas

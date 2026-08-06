@@ -52,6 +52,19 @@ export class GameEngine {
       levelComplete: false,
       dotsRemaining: dots,
     };
+
+    // Handle consumable at start position (dot or power pellet)
+    const startCellValue = this.state.maze[startPos.y][startPos.x];
+    if (startCellValue === 2) {
+      this.state.score += 10;
+      this.state.maze[startPos.y][startPos.x] = 0;
+      this.state.dotsRemaining--;
+    } else if (startCellValue === 3) {
+      this.state.score += 50;
+      this.state.maze[startPos.y][startPos.x] = 0;
+      this.state.dotsRemaining--;
+      this.state.scaredMode = true;
+    }
   }
 
   /** Count dots and power pellets in the maze */
@@ -98,6 +111,8 @@ export class GameEngine {
   }
 
   /** Update game state – called each frame */
+  private timeAccumulator: number = 0;
+
   public update(_deltaMs: number) {
     if (!this.direction) return; // no movement requested
     const { x, y } = this.state.pacMan;
@@ -113,6 +128,11 @@ export class GameEngine {
     if (targetCell === 1) {
       return;
     }
+    this.moveOneStep(targetX, targetY, targetCell);
+  }
+
+  /** Perform a single movement step given target coordinates and cell value */
+  private moveOneStep(targetX: number, targetY: number, targetCell: number) {
     // Move Pac‑Man
     this.state.pacMan = { x: targetX, y: targetY };
     // Handle consumables

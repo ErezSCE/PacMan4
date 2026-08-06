@@ -3,14 +3,24 @@
  * Provides a static layout and a draw method.
  */
 export class Maze {
-  // Simple 5x5 maze matching the test layout (walls = 1, empty = 0)
-  private layout: number[][] = [
-    [1, 1, 1, 1, 1],
-    [1, 2, 0, 3, 1],
-    [1, 0, 1, 0, 1],
-    [1, 2, 0, 2, 1],
-    [1, 1, 1, 1, 1],
-  ];
+  private layout: number[][];
+  private cellSize: number;
+
+  /**
+   * Create a Maze.
+   * @param layout Optional custom layout; defaults to a 5x5 demo layout.
+   * @param cellSize Optional cell size in pixels; defaults to 40.
+   */
+  constructor(layout?: number[][], cellSize: number = 40) {
+    this.layout = layout ?? [
+      [1, 1, 1, 1, 1],
+      [1, 2, 0, 3, 1],
+      [1, 0, 1, 0, 1],
+      [1, 2, 0, 2, 1],
+      [1, 1, 1, 1, 1],
+    ];
+    this.cellSize = cellSize;
+  }
 
   /**
    * Draw the maze onto the provided 2D rendering context.
@@ -18,7 +28,7 @@ export class Maze {
    * dots as small circles, and power pellets as larger circles.
    */
   public draw(ctx: CanvasRenderingContext2D) {
-    const cellSize = 40; // arbitrary size for demo
+    const cellSize = this.cellSize; // use instance cellSize
     for (let y = 0; y < this.layout.length; y++) {
       for (let x = 0; x < this.layout[y].length; x++) {
         const cell = this.layout[y][x];
@@ -41,5 +51,10 @@ export class Maze {
         }
       }
     }
+  }
+
+  /** Expose layout for external use (e.g., GameEngine) */
+  public getLayout(): number[][] {
+    return this.layout.map(row => row.slice());
   }
 }

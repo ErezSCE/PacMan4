@@ -4,13 +4,22 @@
  */
 import { Maze } from './Maze';
 
+import { Position } from '../GameEngine';
+
 export class PacMan {
-  private x: number = 1;
-  private y: number = 1;
+  private x: number;
+  private y: number;
   private maze: Maze;
 
-  constructor(maze: Maze) {
+  /**
+   * Create PacMan.
+   * @param maze The maze instance for potential future collision checks.
+   * @param startPos Initial position of Pac-Man.
+   */
+  constructor(maze: Maze, startPos: Position) {
     this.maze = maze;
+    this.x = startPos.x;
+    this.y = startPos.y;
     // Starting position could be set based on maze, but keep simple.
   }
 
