@@ -56,6 +56,17 @@ describe('PersistenceService (localStorage fallback)', () => {
   });
 
   test('addHighScore keeps only top 10 scores', async () => {
+    // Insert 12 scores with increasing values
+    for (let i = 0; i < 12; i++) {
+      const initials = String.fromCharCode(65 + i).repeat(3); // e.g., AAA, BBB...
+      await persistenceService.addHighScore(initials, i * 10);
+    }
+    const scores = await persistenceService.getHighScores();
+    expect(scores).toHaveLength(10);
+    // Highest score should be the last inserted (i=11, score 110)
+    expect(scores[0].score).toBe(110);
+    // Lowest score should be 20 (i=2) because scores 0-10 are trimmed
+    expect(scores[9].score).toBe(20);
   })
 
   test('addHighScore rejects invalid initials', async () => {

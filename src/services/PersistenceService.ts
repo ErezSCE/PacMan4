@@ -73,7 +73,7 @@ class PersistenceService {
         // Reset dbPromise so subsequent calls can retry.
         this.dbPromise = null;
         // Propagate error so callers can handle fallback.
-        throw new Error('Failed to open IndexedDB');
+        throw new Error(`Failed to open IndexedDB: ${e instanceof Error ? e.message : e}`);
       }
     }
     return this.dbPromise;
@@ -190,7 +190,8 @@ class PersistenceService {
         try {
           const parsed: HighScore[] = JSON.parse(raw);
           return parsed.sort((a, b) => b.score - a.score).slice(0, 10);
-        } catch {
+        } catch (e) {
+          console.warn('Failed to parse high scores from localStorage', e);
           return [];
         }
       }
@@ -216,19 +217,19 @@ class PersistenceService {
   }
 
   async addHighScore(initials: string, score: number): Promise<void> {
-    // Wrap operations in try/catch to provide meaningful errors and avoid unhandled rejections.
-    try {
-    const now = Date.now();
-    // Validate initials: must be exactly three uppercase letters.
+    // Validate initials: normalize to uppercase and ensure three letters.
+    initials = initials.toUpperCase();
     if (!/^[A-Z]{3}$/.test(initials)) {
       throw new Error('Initials must be three uppercase letters');
     }
+    const now = Date.now();
     const entry: HighScore = {
       initials,
       score,
       created_at: now,
       updated_at: now,
     };
+    // If IndexedDB not available, use localStorage directly.
     if (!this.isIDBAvailable) {
       const raw = localStorage.getItem('high_scores');
       let existing: HighScore[] = [];
@@ -242,31 +243,70 @@ class PersistenceService {
       }
       existing.push(entry);
       const sorted = existing.sort((a, b) => b.score - a.score).slice(0, 10);
-      localStorage.setItem('high_scores', JSON.stringify(sorted));
+      try {
+        localStorage.setItem('high_scores', JSON.stringify(sorted));
+      } catch (e) {
+        throw new Error(`Failed to persist high scores to localStorage: ${e instanceof Error ? e.message : String(e)}`);
+      }
       return;
     }
-    const db = await this.getDB();
-    await db.add(PersistenceService.HIGH_SCORES_STORE, entry);
-    // Trim to top 10
-    const all = await db.getAll(PersistenceService.HIGH_SCORES_STORE);
-    const sorted = all.sort((a, b) => b.score - a.score);
-    const toKeep = sorted.slice(0, 10);
-    const toDelete = sorted.slice(10);
-    const tx = db.transaction(PersistenceService.HIGH_SCORES_STORE, 'readwrite');
-    const store = tx.objectStore(PersistenceService.HIGH_SCORES_STORE);
-    for (const del of toDelete) {
-      if (del.id !== undefined) {
-        store.delete(del.id);
+    // IndexedDB path – attempt to add, fallback on any error.
+    try {
+      const db = await this.getDB();
+      await db.add(PersistenceService.HIGH_SCORES_STORE, entry);
+      // Trim to top 10
+      const all = await db.getAll(PersistenceService.HIGH_SCORES_STORE);
+      const sorted = all.sort((a, b) => b.score - a.score);
+      const toDelete = sorted.slice(10);
+      const tx = db.transaction(PersistenceService.HIGH_SCORES_STORE, 'readwrite');
+      const store = tx.objectStore(PersistenceService.HIGH_SCORES_STORE);
+      const deletePromises: Promise<void>[] = [];
+      for (const del of toDelete) {
+        if (del.id !== undefined) {
+          deletePromises.push(store.delete(del.id));
+        }
       }
-    }
-    await tx.done;
+      await Promise.all(deletePromises);
+      await tx.done;
     } catch (err) {
-      // Wrap any error in a more descriptive message for callers.
-      throw new Error(`Failed to add high score: ${err instanceof Error ? err.message : String(err)}`);
+      // On any IndexedDB error, fallback to localStorage.
+      const raw = localStorage.getItem('high_scores');
+      let existing: HighScore[] = [];
+      if (raw) {
+        try {
+          existing = JSON.parse(raw);
+        } catch {
+          existing = [];
+        }
+      }
+      existing.push(entry);
+      const sorted = existing.sort((a, b) => b.score - a.score).slice(0, 10);
+      try {
+        localStorage.setItem('high_scores', JSON.stringify(sorted));
+      } catch (e) {
+        throw new Error(`Failed to persist high scores to localStorage after IndexedDB error: ${e instanceof Error ? e.message : String(e)}`);
+      }
     }
   }
 
   /** Utility for tests – clears all persisted data */
+  /**
+   * Closes the IndexedDB connection and deletes the database.
+   * Useful for test teardown or hot‑reload scenarios.
+   */
+  async close(): Promise<void> {
+    if (this.dbPromise) {
+      try {
+        const db = await this.dbPromise;
+        db.close();
+      } catch {
+        // ignore errors during close
+      }
+      await deleteDB(PersistenceService.DB_NAME);
+      this.dbPromise = null;
+    }
+  }
+
   async clearAll(): Promise<void> {
     if (!this.isIDBAvailable) {
       // Fallback mode – clear only localStorage entries.

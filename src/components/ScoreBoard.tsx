@@ -12,7 +12,7 @@ export const ScoreBoard: React.FC = () => {
 
   useEffect(() => {
     // Load high scores using the PersistenceService, which handles IndexedDB fallback internally.
-    (async () => {
+    const loadScores = async () => {
       try {
         const hs = await persistenceService.getHighScores();
         setScores(hs);
@@ -20,7 +20,8 @@ export const ScoreBoard: React.FC = () => {
         // eslint-disable-next-line no-console
         console.error('Failed to load high scores', err);
       }
-    })();
+    };
+    loadScores();
     // No subscription mechanism – just load once on mount.
   }, []);
 
