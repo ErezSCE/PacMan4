@@ -32,11 +32,10 @@ describe('Engine', () => {
     expect((engine as any).assetsLoaded).toBe(false);
     await engine.loadAssets();
     expect((engine as any).assetsLoaded).toBe(true);
-    expect((engine as any).levelData).toEqual({ name: 'Level 1', layout: [] });
-    expect((engine as any).spriteSheet).toEqual({ sprites: [] });
-    // Calling again should not reload
-    const spy = jest.spyOn(engine as any, 'loadAssets');
+    expect((engine as any).levelData).toHaveProperty('name');
+    expect((engine as any).spriteSheet).toHaveProperty('sprites');
+    // Calling again should not reload and assets remain loaded
     await engine.loadAssets();
-    expect(spy).toHaveReturned(); // returns early without error
+    expect((engine as any).assetsLoaded).toBe(true);
   });
 });

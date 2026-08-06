@@ -17,7 +17,7 @@ export const FruitIndicator: React.FC<FruitIndicatorProps> = ({ fruit }) => {
   }
 
   return (
-    <div data-testid="fruit-indicator" style={{ marginTop: '8px' }}>
+    <div data-testid="fruit-indicator" className="fruit-indicator">
       <span>{fruit.type.name}</span>{' '}
       <span>({fruit.type.points} pts)</span>
     </div>

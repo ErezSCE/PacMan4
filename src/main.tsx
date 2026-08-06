@@ -15,8 +15,8 @@ root.render(
 );
 
 // Register Service Worker for PWA offline support
-if (navigator.serviceWorker && typeof navigator.serviceWorker.register === 'function') {
-  window.addEventListener('load', () => {
+window.addEventListener('load', () => {
+  if (navigator.serviceWorker && typeof navigator.serviceWorker.register === 'function') {
     navigator.serviceWorker
       .register('/service-worker.js')
       .then((registration) => {
@@ -40,5 +40,5 @@ if (navigator.serviceWorker && typeof navigator.serviceWorker.register === 'func
       .catch((error) => {
         console.error('Service Worker registration failed:', error);
       });
-  });
-}
+  }
+});

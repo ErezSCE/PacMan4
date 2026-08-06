@@ -38,6 +38,7 @@ export class Engine {
   };
   private prevState: GameState | null = null;
   private assetsLoaded = false;
+  private levelAdvanced = false;
   private levelData: any = null;
   private spriteSheet: any = null;
 
@@ -64,7 +65,13 @@ export class Engine {
 
   /** Simulate eating a dot */
   eatDot() {
-    if (this.state.remainingDots <= 0) return;
+    if (this.state.remainingDots <= 0) {
+      // If called after all dots are already eaten, ensure level advancement occurs once.
+      if (!this.levelAdvanced) {
+        this.advanceLevel();
+      }
+      return;
+    }
     this.state.remainingDots--;
     this.state.dotsEaten++;
     this.state.score += 10; // each dot worth 10 points
@@ -108,6 +115,8 @@ export class Engine {
     const baseScared = 8000;
     const decrement = (this.state.level - 1) * 500; // decrease 0.5s per level
     this.state.scaredDuration = Math.max(2000, baseScared - decrement);
+    // Mark that level has been advanced to prevent duplicate advancement on extra eatDot calls
+    this.levelAdvanced = true;
   }
 
   /** Get a copy of the current state */
