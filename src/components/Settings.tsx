@@ -24,16 +24,18 @@ export const Settings: React.FC = () => {
     const checked = e.target.checked;
     // Ensure state update is flushed synchronously for immediate UI reflection
     flushSync(() => setColorBlind(checked));
-    // Persist settings without awaiting to keep UI responsive
-    persistenceService.setSettings({ colorBlindMode: checked, mute });
   };
 
   const handleMuteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const checked = e.target.checked;
     flushSync(() => setMute(checked));
-    // Persist settings without awaiting to keep UI responsive
-    persistenceService.setSettings({ mute: checked, colorBlindMode: colorBlind });
   };
+
+  // Persist settings whenever they change.
+  useEffect(() => {
+    // Persist asynchronously but do not await to keep UI responsive.
+    persistenceService.setSettings({ colorBlindMode: colorBlind, mute });
+  }, [colorBlind, mute]);
 
   return (
     <section aria-label="settings" data-testid="settings">

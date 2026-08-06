@@ -8,33 +8,19 @@ import { persistenceService, HighScore } from '../services/PersistenceService';
  * re‑fetch the scores after each addition – the service does not emit events.
  */
 export const ScoreBoard: React.FC = () => {
-  // Synchronous fallback for environments without IndexedDB (e.g., tests)
-  const initialScores: HighScore[] = (() => {
-    if (typeof indexedDB === 'undefined') {
-      const raw = localStorage.getItem('high_scores');
-      if (raw) {
-        try {
-          const parsed: HighScore[] = JSON.parse(raw);
-          return parsed.sort((a, b) => b.score - a.score).slice(0, 10);
-        } catch {
-          return [];
-        }
-      }
-      return [];
-    }
-    return [];
-  })();
-
-  const [scores, setScores] = useState<HighScore[]>(initialScores);
+  const [scores, setScores] = useState<HighScore[]>([]);
 
   useEffect(() => {
-    // Only fetch asynchronously when IndexedDB is available.
-    if (typeof indexedDB !== 'undefined') {
-      (async () => {
+    // Load high scores using the PersistenceService, which handles IndexedDB fallback internally.
+    (async () => {
+      try {
         const hs = await persistenceService.getHighScores();
         setScores(hs);
-      })();
-    }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to load high scores', err);
+      }
+    })();
     // No subscription mechanism – just load once on mount.
   }, []);
 
@@ -45,8 +31,8 @@ export const ScoreBoard: React.FC = () => {
         <p>No high scores yet.</p>
       ) : (
         <ol>
-          {scores.map((s) => (
-            <li key={s.id ?? `${s.initials}-${s.score}`}>
+          {scores.map((s, index) => (
+            <li key={s.id ?? index}>
               {s.initials}: {s.score}
             </li>
           ))}

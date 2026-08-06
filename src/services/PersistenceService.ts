@@ -103,10 +103,17 @@ class PersistenceService {
     if (raw) {
       try {
         const parsed = JSON.parse(raw);
-        return {
-          colorBlindMode: !!parsed.color_blind_mode,
-          mute: !!parsed.mute,
-        };
+        // Validate shape: ensure required fields exist and are booleans
+        if (
+          typeof parsed.color_blind_mode === 'boolean' &&
+          typeof parsed.mute === 'boolean'
+        ) {
+          return {
+            colorBlindMode: parsed.color_blind_mode,
+            mute: parsed.mute,
+          };
+        }
+        // If shape invalid, fall through to defaults
       } catch {
         // fall through to defaults
       }
@@ -209,6 +216,8 @@ class PersistenceService {
   }
 
   async addHighScore(initials: string, score: number): Promise<void> {
+    // Wrap operations in try/catch to provide meaningful errors and avoid unhandled rejections.
+    try {
     const now = Date.now();
     // Validate initials: must be exactly three uppercase letters.
     if (!/^[A-Z]{3}$/.test(initials)) {
@@ -251,11 +260,16 @@ class PersistenceService {
       }
     }
     await tx.done;
+    } catch (err) {
+      // Wrap any error in a more descriptive message for callers.
+      throw new Error(`Failed to add high score: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   /** Utility for tests – clears all persisted data */
   async clearAll(): Promise<void> {
     if (!this.isIDBAvailable) {
+      // Fallback mode – clear only localStorage entries.
       localStorage.removeItem('high_scores');
       localStorage.removeItem('settings');
       return;
@@ -273,6 +287,9 @@ class PersistenceService {
       // If clearing fails (e.g., DB not opened), delete the DB entirely.
       await deleteDB(PersistenceService.DB_NAME);
     }
+    // Ensure any stale fallback data in localStorage is also removed.
+    localStorage.removeItem('high_scores');
+    localStorage.removeItem('settings');
   }
 }
 

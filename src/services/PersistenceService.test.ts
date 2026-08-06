@@ -7,10 +7,19 @@ import { persistenceService, HighScore } from './PersistenceService';
  */
 
 describe('PersistenceService (localStorage fallback)', () => {
+  let originalIndexedDB: any;
   beforeAll(() => {
+    // Preserve original IndexedDB reference.
+    // @ts-ignore
+    originalIndexedDB = (global as any).indexedDB;
     // Ensure IndexedDB is undefined to force fallback to localStorage in JSDOM.
     // @ts-ignore
     (global as any).indexedDB = undefined;
+  });
+  afterAll(() => {
+    // Restore original IndexedDB reference.
+    // @ts-ignore
+    (global as any).indexedDB = originalIndexedDB;
   });
   beforeEach(async () => {
     // Ensure a clean slate before each test
@@ -47,6 +56,9 @@ describe('PersistenceService (localStorage fallback)', () => {
   });
 
   test('addHighScore keeps only top 10 scores', async () => {
+  })
+
+  test('addHighScore rejects invalid initials', async () => {
     // Insert 12 scores with increasing values
     for (let i = 0; i < 12; i++) {
       const initials = String.fromCharCode(65 + i).repeat(3); // e.g., AAA, BBB...
