@@ -5,6 +5,8 @@
  */
 import { Direction } from "../input/types";
 import { Fruit, FruitType } from "./Fruit";
+import type { LevelData } from "../assets/levels/level1";
+import type { SpriteSheet } from "../assets/sprites/spriteSheet";
 
 export interface FruitInfo {
   active: boolean;
@@ -45,8 +47,7 @@ export class Engine {
   private prevState: GameState | null = null;
   private assetsLoaded = false;
   private levelAdvanced: boolean = false;
-  private levelData: any = null;
-  private spriteSheet: any = null;
+
 
   /** Load level data and sprite sheet lazily via dynamic import */
   async loadAssets(): Promise<void> {
@@ -58,12 +59,16 @@ export class Engine {
         import("../assets/sprites/spriteSheet"),
       ]);
       // Prefer default export, fall back to named export matching file name if present
-      const level = (levelModule as any).default ?? (levelModule as any).level ?? levelModule;
-      const sprite = (spriteModule as any).default ?? (spriteModule as any).spriteSheet ?? spriteModule;
+      const level = (levelModule as { default?: LevelData; level?: LevelData }).default ??
+        (levelModule as { level?: LevelData }).level ??
+        (levelModule as LevelData);
+      const sprite = (spriteModule as { default?: SpriteSheet; spriteSheet?: SpriteSheet }).default ??
+        (spriteModule as { spriteSheet?: SpriteSheet }).spriteSheet ??
+        (spriteModule as SpriteSheet);
       this.levelData = level;
       this.spriteSheet = sprite;
       this.assetsLoaded = true;
-    } catch (err) {
+    } catch (err: unknown) {
       // Re‑throw with a descriptive message to aid debugging
       throw new Error(`Failed to load assets: ${(err as Error).message}`);
     }
@@ -132,9 +137,9 @@ export class Engine {
   }
 
   /** Get the current state */
-  // Returns the live state object. Consumers should treat it as read‑only.
-  getState(): GameState {
-    return this.state;
+  // Returns a shallow copy of the state to enforce read‑only usage.
+  getState(): Readonly<GameState> {
+    return { ...this.state } as Readonly<GameState>;
   }
 
   /** Determine if the state has changed since last frame */
