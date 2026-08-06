@@ -5,6 +5,8 @@
  */
 import { Direction } from "../input/types";
 import { Fruit, FruitType } from "./Fruit";
+import type { LevelData } from "../assets/levels/level1";
+import type { SpriteSheet } from "../assets/sprites/spriteSheet";
 
 export interface FruitInfo {
   active: boolean;
@@ -45,8 +47,9 @@ export class Engine {
   private prevState: GameState | null = null;
   private assetsLoaded = false;
   private levelAdvanced: boolean = false;
-  private levelData: any = null;
-  private spriteSheet: any = null;
+
+private levelData: LevelData | null = null;
+  private spriteSheet: SpriteSheet | null = null;
 
   /** Load level data and sprite sheet lazily via dynamic import */
   async loadAssets(): Promise<void> {
@@ -57,9 +60,9 @@ export class Engine {
         import("../assets/levels/level1"),
         import("../assets/sprites/spriteSheet"),
       ]);
-      // Prefer default export, fall back to named export matching file name if present
-      const level = (levelModule as any).default ?? (levelModule as any).level ?? levelModule;
-      const sprite = (spriteModule as any).default ?? (spriteModule as any).spriteSheet ?? spriteModule;
+      // Extract default exports with proper typing, avoiding any
+      const level = (levelModule as { default: LevelData }).default;
+      const sprite = (spriteModule as { default: SpriteSheet }).default;
       this.levelData = level;
       this.spriteSheet = sprite;
       this.assetsLoaded = true;
@@ -131,10 +134,13 @@ export class Engine {
     this.levelAdvanced = false;
   }
 
-  /** Get the current state */
-  // Returns the live state object. Consumers should treat it as read‑only.
-  getState(): GameState {
-    return this.state;
+  /**
+   * Returns a read‑only snapshot of the current game state.
+   * The returned object is frozen to prevent accidental mutation.
+   */
+  getState(): Readonly<GameState> {
+    // Return a shallow frozen copy to enforce immutability at runtime.
+    return Object.freeze({ ...this.state });
   }
 
   /** Determine if the state has changed since last frame */
