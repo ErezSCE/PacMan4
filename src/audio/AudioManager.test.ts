@@ -81,7 +81,8 @@ describe('AudioManager', () => {
 
   test('setLevel updates siren playback rate when siren is playing', () => {
     audioManager.playSiren(); // level defaults to 0, rate should be 1
-    const sirenInstance = (audioManager as any).sounds['siren'];
+    // Retrieve the siren Howl mock instance (last created)
+    const sirenInstance = (Howl as jest.Mock).mock.instances[7] as any;
     expect(sirenInstance.rate).toHaveBeenCalledWith(1, 1);
     audioManager.setLevel(5);
     expect(sirenInstance.rate).toHaveBeenCalledWith(1 + 5 * 0.1, 1);

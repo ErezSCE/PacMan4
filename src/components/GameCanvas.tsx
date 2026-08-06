@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { Engine } from '../game/Engine';
 
 /**
@@ -17,7 +17,7 @@ export const GameCanvas: React.FC = () => {
   const ASPECT = BASE_WIDTH / BASE_HEIGHT;
 
   // Resize canvas to fit container while preserving aspect ratio
-  const resizeCanvas = () => {
+  const resizeCanvas = useCallback(() => {
     if (!containerRef.current || !canvasRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     let width = rect.width;
@@ -67,7 +67,7 @@ export const GameCanvas: React.FC = () => {
       cancelAnimationFrame(frameIdRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [resizeCanvas]);
 
   return (
     <div ref={containerRef} data-testid="game-canvas-container" style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>

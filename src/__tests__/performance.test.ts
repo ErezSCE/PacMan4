@@ -1,4 +1,4 @@
-/** @jest-environment node */
+/** @jest-environment puppeteer */
 import { spawn, execSync } from 'child_process';
 import puppeteer from 'puppeteer';
 
