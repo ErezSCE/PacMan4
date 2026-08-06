@@ -12,11 +12,12 @@ jest.mock('howler', () => {
   mockStop = jest.fn();
   mockRate = jest.fn();
   mockMute = jest.fn();
-  const MockHowl = jest.fn().mockImplementation(() => ({
-    play: mockPlay,
-    stop: mockStop,
-    rate: mockRate,
-  }));
+  // Mock Howl as a constructor that assigns methods to the instance (this)
+  const MockHowl = jest.fn().mockImplementation(function (this: any) {
+    this.play = mockPlay;
+    this.stop = mockStop;
+    this.rate = mockRate;
+  });
   const MockHowler = { mute: mockMute };
   return { __esModule: true, Howl: MockHowl, Howler: MockHowler };
 });
