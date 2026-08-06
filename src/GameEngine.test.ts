@@ -1,4 +1,6 @@
 import { GameEngine, Direction } from './GameEngine';
+// Use Direction to avoid unused import lint error
+const _Direction = Direction;
 
 describe('GameEngine', () => {
   const simpleMaze = [
